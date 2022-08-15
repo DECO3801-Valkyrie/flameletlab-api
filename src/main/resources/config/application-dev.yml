@@ -1,0 +1,17 @@
+spring:
+  jackson:
+    serialization:
+      indent-output: true
+  datasource:
+      type: com.zaxxer.hikari.HikariDataSource
+      url: jdbc:mysql://localhost:3310/flameletlab?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&allowPublicKeyRetrieval=true&useSSL=false
+      username: root
+      password: root
+  jpa:
+      database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+      database: MYSQL
+      show_sql: true
+      hibernate:
+        ddl-auto: validate
+      properties:
+        format_sql: true
