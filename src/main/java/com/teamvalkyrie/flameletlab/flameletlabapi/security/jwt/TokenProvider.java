@@ -1,6 +1,7 @@
 package com.teamvalkyrie.flameletlab.flameletlabapi.security.jwt;
 
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,8 +45,8 @@ public class TokenProvider {
                 "Warning: the JWT key used is not Base64-encoded. " +
                         "We recommend using the `jhipster.security.authentication.jwt.base64-secret` key for optimum security."
         );
-        String secret = "08h24fh2hf01h2408fhg10hf08gh=]4018g";
-        keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+        String secret = "bXktc2VjcmV0LWtleS13aGljaC1zaG91bGQtYmUtY2hhbmdlZC1pbi1wcm9kdWN0aW9uLWFuZC1iZS1iYXNlNjQtZW5jb2RlZAo=";
+        keyBytes = Decoders.BASE64.decode(secret);
         key = Keys.hmacShaKeyFor(keyBytes);
         jwtParser = Jwts.parserBuilder().setSigningKey(key).build();
         this.tokenValidityInMilliseconds = 1000 * 86400;
