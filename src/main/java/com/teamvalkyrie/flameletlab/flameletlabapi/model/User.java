@@ -26,6 +26,8 @@ public class User {
     @Column
     private String password;
 
+    @OneToMany(mappedBy = "user")
+    Set<Todo> todos;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(
