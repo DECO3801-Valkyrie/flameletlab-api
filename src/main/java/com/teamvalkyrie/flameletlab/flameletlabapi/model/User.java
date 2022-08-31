@@ -26,6 +26,13 @@ public class User {
     @Column
     private String password;
 
+    @Column
+    private String timezone_id;
+
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "occupation_type_id", referencedColumnName = "id")
+    private occupation_type occupation_type;
+
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(
