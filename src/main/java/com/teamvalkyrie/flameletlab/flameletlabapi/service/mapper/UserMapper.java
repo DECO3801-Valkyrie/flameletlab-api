@@ -1,6 +1,7 @@
 package com.teamvalkyrie.flameletlab.flameletlabapi.service.mapper;
 
 import com.teamvalkyrie.flameletlab.flameletlabapi.model.User;
+import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.UserAccountResponse;
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.UserRegisterRequest;
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.UserRegisterResponse;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,15 @@ public class UserMapper {
         userRegisterResponse.setEmail(user.getEmail());
 
         return userRegisterResponse;
+    }
+
+    public UserAccountResponse userToUserAccountResponse(User user) {
+        UserAccountResponse userAccountResponse = new UserAccountResponse();
+        userAccountResponse.setId(user.getId());
+        userAccountResponse.setFullName(user.getFullName());
+        userAccountResponse.setEmail(user.getEmail());
+
+        return userAccountResponse;
     }
 
     public User userRegisterRequestToUser(UserRegisterRequest userRegisterRequest) {
