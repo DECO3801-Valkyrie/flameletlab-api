@@ -1,10 +1,7 @@
 package com.teamvalkyrie.flameletlab.flameletlabapi.controller;
 
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.UserTodoService;
-import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.UserTodoRequest;
-import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.UserTodoResponse;
-import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.UserTodoRequestWithId;
-import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.UserTodosResponse;
+import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.*;
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.mapper.UserTodoMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -51,5 +50,20 @@ public class TodoRestController {
         var response = userTodoMapper.mapTodoListToUserTodosResponse(userTodoService.getTodoList());
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/todos")
+    public ResponseEntity<List<ResponseEntity<UserTodoResponse>>> addTodos(@Valid @RequestBody UserTodosRequest request) throws URISyntaxException {
+        ArrayList<String> todoNames = request.getNames();
+        ArrayList<ResponseEntity<UserTodoResponse>> responses = new ArrayList<>();
+
+        var overallResponse = userTodoMapper.mapTodoListToUserTodosResponse(
+                userTodoService.saveNewTodos(todoNames));
+
+        for (UserTodoResponse response : overallResponse.getTodos()) {
+            responses.add(ResponseEntity.created(new URI("/api/todo" + response.getId())).body(response));
+        }
+
+        return ResponseEntity.ok(responses);
     }
 }
