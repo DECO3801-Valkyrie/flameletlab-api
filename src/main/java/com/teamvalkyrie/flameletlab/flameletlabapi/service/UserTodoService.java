@@ -69,13 +69,24 @@ public class UserTodoService {
     public Todo toggleTodo(long id) {
         Todo currentTodo = todoRepository.getReferenceById(id);
         boolean toggle;
+        ZonedDateTime completedTime;
+
 
         if (currentTodo.getDone()) {
             toggle = false;
+            completedTime = null;
         } else {
             toggle = true;
+
+            // currently just using the system clock
+            // in the future logic will need to be introduced
+            // so that an individual user's time zone is used
+            // instead
+            completedTime = ZonedDateTime.now();
+
         }
 
+        currentTodo.setDateCompleted(completedTime);
         currentTodo.setDone(toggle);
         return todoRepository.save(currentTodo);
     }
