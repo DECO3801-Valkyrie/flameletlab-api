@@ -4,6 +4,7 @@ import com.teamvalkyrie.flameletlab.flameletlabapi.service.UserTodoService;
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.UserTodoRequest;
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.UserTodoResponse;
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.UserTodoRequestWithId;
+import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.UserTodosResponse;
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.mapper.UserTodoMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -43,5 +44,12 @@ public class TodoRestController {
         userTodoService.deleteTodo(request.getId());
 
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/todos")
+    public ResponseEntity<UserTodosResponse> getTodos() {
+        var response = userTodoMapper.mapTodoListToUserTodosResponse(userTodoService.getTodoList());
+
+        return ResponseEntity.ok(response);
     }
 }

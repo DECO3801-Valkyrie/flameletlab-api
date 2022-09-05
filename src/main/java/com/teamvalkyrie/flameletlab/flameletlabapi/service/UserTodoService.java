@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 
 
 @Service
@@ -56,5 +57,9 @@ public class UserTodoService {
     @Transactional
     public void deleteTodo(long id) {
         todoRepository.deleteById(id);
+    }
+
+    public ArrayList<Todo> getTodoList() {
+        return new ArrayList<>(todoRepository.findAll());
     }
 }

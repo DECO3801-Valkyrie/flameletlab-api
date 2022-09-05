@@ -1,9 +1,11 @@
 package com.teamvalkyrie.flameletlab.flameletlabapi.service.mapper;
 
 import com.teamvalkyrie.flameletlab.flameletlabapi.model.Todo;
-import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.UserTodoRequest;
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.UserTodoResponse;
+import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.UserTodosResponse;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
 
 @Service
 public class UserTodoMapper {
@@ -16,5 +18,16 @@ public class UserTodoMapper {
         userTodoResponse.setDateCompleted(todo.getDateCompleted());
         userTodoResponse.setDone(todo.getDone());
         return userTodoResponse;
+    }
+
+    public UserTodosResponse mapTodoListToUserTodosResponse(ArrayList<Todo> todos) {
+        UserTodosResponse response = new UserTodosResponse();
+        ArrayList<UserTodoResponse> todosResponse = response.getTodos();
+
+        for (Todo todo : todos) {
+            todosResponse.add(mapTodoToUserTodoResponse(todo));
+        }
+
+        return response;
     }
 }
