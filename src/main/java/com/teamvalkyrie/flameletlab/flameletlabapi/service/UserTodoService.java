@@ -4,7 +4,6 @@ import com.teamvalkyrie.flameletlab.flameletlabapi.model.Todo;
 import com.teamvalkyrie.flameletlab.flameletlabapi.model.User;
 import com.teamvalkyrie.flameletlab.flameletlabapi.repository.TodoRepository;
 import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,5 +36,25 @@ public class UserTodoService {
         newTodo.setDateCompleted(null);
         newTodo.setDone(false);
         return todoRepository.save(newTodo);
+    }
+
+    @Transactional
+    public Todo toggleTodo(long id) {
+        Todo currentTodo = todoRepository.getReferenceById(id);
+        boolean toggle;
+
+        if (currentTodo.getDone()) {
+            toggle = false;
+        } else {
+            toggle = true;
+        }
+
+        currentTodo.setDone(toggle);
+        return todoRepository.save(currentTodo);
+    }
+
+    @Transactional
+    public void deleteTodo(long id) {
+        todoRepository.deleteById(id);
     }
 }
