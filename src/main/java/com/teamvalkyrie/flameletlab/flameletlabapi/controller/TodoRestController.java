@@ -1,6 +1,8 @@
 package com.teamvalkyrie.flameletlab.flameletlabapi.controller;
 
+import com.teamvalkyrie.flameletlab.flameletlabapi.model.User;
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.UserTodoService;
+import com.teamvalkyrie.flameletlab.flameletlabapi.service.UserService;
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.*;
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.mapper.UserTodoMapper;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +22,7 @@ public class TodoRestController {
 
     private final UserTodoService userTodoService;
     private final UserTodoMapper userTodoMapper;
-
+    private final UserService userService;
 
     @PostMapping("/todo")
     public ResponseEntity<UserTodoResponse> createTodo(@Valid @RequestBody UserTodoRequest request) throws URISyntaxException {
@@ -47,7 +49,8 @@ public class TodoRestController {
 
     @GetMapping("/todos")
     public ResponseEntity<UserTodosResponse> getTodos() {
-        var response = userTodoMapper.mapTodoListToUserTodosResponse(userTodoService.getTodoList());
+        User current = userService.getCurrentLoggedInUser();
+        var response = userTodoMapper.mapTodoListToUserTodosResponse(userTodoService.getTodoList(current));
 
         return ResponseEntity.ok(response);
     }

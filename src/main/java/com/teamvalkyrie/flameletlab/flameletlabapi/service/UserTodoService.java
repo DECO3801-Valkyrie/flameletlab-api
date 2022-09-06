@@ -104,7 +104,17 @@ public class UserTodoService {
      * Gets the list of a user's todos
      * @return list of users todos
      */
-    public ArrayList<Todo> getTodoList() {
-        return new ArrayList<>(todoRepository.findAll());
+    public ArrayList<Todo> getTodoList(User user) {
+        return new ArrayList<>(todoRepository.findByUser(user));
+    }
+
+    public int getNumberOfDoneTodos() {
+        // get the database to do it, should be faster
+        // than using java to perform counts
+        return (int) todoRepository.countByDone(true);
+    }
+
+    public int getNumberOfTodos() {
+        return (int) todoRepository.count();
     }
 }

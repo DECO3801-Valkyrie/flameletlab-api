@@ -83,7 +83,7 @@ public class UserService implements UserDetailsService {
     public User save(User user) {
 
         // Only encode password if user is new
-        if(user.getId() == null) {
+        if (user.getId() == null) {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
 
