@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.List;
 
 
 @Service
@@ -47,8 +48,8 @@ public class UserTodoService {
      * @return a list of the newly created todo objects
      */
     @Transactional
-    public ArrayList<Todo> saveNewTodos(ArrayList<String> todoNames) {
-        ArrayList<Todo> todos = new ArrayList<>();
+    public List<Todo> saveNewTodos(List<String> todoNames) {
+        List<Todo> todos = new ArrayList<>();
 
         for (String todoName : todoNames) {
             // saveNewTodo method already saves to
@@ -100,21 +101,25 @@ public class UserTodoService {
         todoRepository.deleteById(id);
     }
 
+    public Todo getTodo(long id) {
+        return todoRepository.getReferenceById(id);
+    }
+
     /**
      * Gets the list of a user's todos
      * @return list of users todos
      */
-    public ArrayList<Todo> getTodoList(User user) {
+    public List<Todo> getTodoList(User user) {
         return new ArrayList<>(todoRepository.findByUser(user));
     }
 
-    public int getNumberOfDoneTodos() {
+    public int getNumberOfDoneTodos(User user) {
         // get the database to do it, should be faster
         // than using java to perform counts
-        return (int) todoRepository.countByDone(true);
+        return (int) todoRepository.countByUserAndDone(user, true);
     }
 
-    public int getNumberOfTodos() {
-        return (int) todoRepository.count();
+    public int getNumberOfTodos(User user) {
+        return (int) todoRepository.countByUser(user);
     }
 }

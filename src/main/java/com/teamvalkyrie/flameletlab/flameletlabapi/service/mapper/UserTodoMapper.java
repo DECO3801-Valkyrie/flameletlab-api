@@ -6,6 +6,7 @@ import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.UserTodosResponse
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class UserTodoMapper {
@@ -20,7 +21,7 @@ public class UserTodoMapper {
         return userTodoResponse;
     }
 
-    public UserTodosResponse mapTodoListToUserTodosResponse(ArrayList<Todo> todos) {
+    public UserTodosResponse mapTodoListToUserTodosResponse(List<Todo> todos) {
         UserTodosResponse response = new UserTodosResponse();
         ArrayList<UserTodoResponse> todosResponse = response.getTodos();
 

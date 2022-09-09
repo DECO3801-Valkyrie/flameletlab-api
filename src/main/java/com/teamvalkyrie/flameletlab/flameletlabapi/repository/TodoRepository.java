@@ -9,7 +9,9 @@ import java.util.List;
 
 @Repository
 public interface TodoRepository extends JpaRepository<Todo, Long> {
-    long countByDone(Boolean isDone);
+    long countByUserAndDone(User user, Boolean isDone);
+
+    long countByUser(User user);
 
     List<Todo> findByUser(User user);
 }

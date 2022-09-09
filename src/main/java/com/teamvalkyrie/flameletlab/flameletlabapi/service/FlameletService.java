@@ -3,7 +3,6 @@ package com.teamvalkyrie.flameletlab.flameletlabapi.service;
 import com.teamvalkyrie.flameletlab.flameletlabapi.model.Flamelet;
 import com.teamvalkyrie.flameletlab.flameletlabapi.model.User;
 import com.teamvalkyrie.flameletlab.flameletlabapi.repository.FlameletRepository;
-import com.teamvalkyrie.flameletlab.flameletlabapi.service.exception.InvalidFlameletMoodException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,39 +62,18 @@ public class FlameletService {
     }
 
     /**
-     * Helper method that sets the user's flamelet's mood
-     * @param user
-     * @param newMood
-     * @throws InvalidFlameletMoodException if the mood provided is invalid, accepted moods
-     * are {"neutral", "happy", "excited", "joyful", "exhilarated", "euphoric"}
-     * (caps doesn't matter)
-     */
-    private void setMoodHelper(User user, String newMood) throws InvalidFlameletMoodException{
-        Flamelet flamelet = getUsersFlamelet(user);
-
-        try {
-            validateMood(newMood);
-            flamelet.setMood(newMood);
-            flameletRepository.save(flamelet);
-        } catch (IllegalArgumentException e) {
-            throw new InvalidFlameletMoodException(newMood +
-                    " is not a valid mood for a Flamelet entity");
-        }
-    }
-
-    /**
      * Looks at the users todos and calculates the mood for flamelet based on them
      * @param user
-     * @return
+     * @return flamelet's mood
      */
     private String calculateFlameletMood(User user) {
         Mood mood;
 
-        int numTodos = userTodoService.getNumberOfTodos();
-        long doneProportion = 0;
+        int numTodos = userTodoService.getNumberOfTodos(user);
+        double doneProportion = 0;
 
         if (numTodos != 0) {
-            doneProportion = userTodoService.getNumberOfDoneTodos() / numTodos;
+            doneProportion = (float) userTodoService.getNumberOfDoneTodos(user) / numTodos;
         }
 
         /*
@@ -135,6 +113,7 @@ public class FlameletService {
      * @param user
      * @return the newly created flamelet
      */
+    @Transactional
     public Flamelet createFlamelet(User user) {
         Flamelet flamelet = new Flamelet();
 
@@ -148,26 +127,15 @@ public class FlameletService {
      * Gets the current mood of a user's flamelet.
      * @param user
      * @return user's flamelet's mood
-     * @throws InvalidFlameletMoodException (architecture stuff, it shouldn't)
      */
-    public String getMood(User user) throws InvalidFlameletMoodException {
-        String mood;
+    public String getMood(User user) {
+        //String mood;
+        //setMood(user); // updates flamelet's mood
+        //mood = getUsersFlamelet(user).getMood();
 
-        setMood(user); // updates flamelet's mood
-        mood = getUsersFlamelet(user).getMood();
-
-        return mood;
+        // mood doesn't need to be stored in DB, just
+        // calculate when it's needed
+        return calculateFlameletMood(user);
     }
 
-    /**
-     * This function will set a user's flamelet's mood according to the states of its todos.
-     * Use it if you want to update flamelet's mood.
-     *
-     * @param user
-     * @throws InvalidFlameletMoodException
-     */
-    public void setMood(User user) throws InvalidFlameletMoodException {
-        String mood = calculateFlameletMood(user);
-        setMoodHelper(user, mood);
-    }
 }

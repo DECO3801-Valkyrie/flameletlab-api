@@ -47,6 +47,13 @@ public class TodoRestController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/todo")
+    public ResponseEntity<UserTodoResponse> getTodo(@Valid @RequestBody UserTodoRequestWithId request) {
+        var response = userTodoService.getTodo(request.getId());
+
+        return ResponseEntity.ok(userTodoMapper.mapTodoToUserTodoResponse(response));
+    }
+
     @GetMapping("/todos")
     public ResponseEntity<UserTodosResponse> getTodos() {
         User current = userService.getCurrentLoggedInUser();
@@ -57,8 +64,8 @@ public class TodoRestController {
 
     @PostMapping("/todos")
     public ResponseEntity<List<ResponseEntity<UserTodoResponse>>> addTodos(@Valid @RequestBody UserTodosRequest request) throws URISyntaxException {
-        ArrayList<String> todoNames = request.getNames();
-        ArrayList<ResponseEntity<UserTodoResponse>> responses = new ArrayList<>();
+        List<String> todoNames = request.getNames();
+        List<ResponseEntity<UserTodoResponse>> responses = new ArrayList<>();
 
         var overallResponse = userTodoMapper.mapTodoListToUserTodosResponse(
                 userTodoService.saveNewTodos(todoNames));
