@@ -3,10 +3,12 @@ package com.teamvalkyrie.flameletlab.flameletlabapi.service.dto;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
+import java.time.Duration;
+import java.util.Map;
 
 @Getter
 @Setter
 public class UserTodosRequest {
-    private ArrayList<String> names;
+    // todoName : lengthOfTodo
+    private Map<String, Duration> newTodos;
 }

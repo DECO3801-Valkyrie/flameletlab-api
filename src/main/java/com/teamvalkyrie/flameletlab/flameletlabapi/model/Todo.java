@@ -5,6 +5,7 @@ import lombok.Setter;
 import org.hibernate.Hibernate;
 
 import javax.persistence.*;
+import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Objects;
 
@@ -29,6 +30,9 @@ public class Todo {
 
     @Column
     private ZonedDateTime dateCompleted;
+
+    @Column
+    private Duration estimatedTime;
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)

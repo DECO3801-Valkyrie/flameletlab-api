@@ -18,6 +18,7 @@ public class UserTodoMapper {
         userTodoResponse.setCreated(todo.getCreated());
         userTodoResponse.setDateCompleted(todo.getDateCompleted());
         userTodoResponse.setDone(todo.getDone());
+        userTodoResponse.setEstimatedTime(todo.getEstimatedTime());
         return userTodoResponse;
     }
 

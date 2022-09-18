@@ -27,7 +27,7 @@ public class TodoRestController {
     @PostMapping("/todo")
     public ResponseEntity<UserTodoResponse> createTodo(@Valid @RequestBody UserTodoRequest request) throws URISyntaxException {
         var response = userTodoMapper
-                .mapTodoToUserTodoResponse(userTodoService.saveNewTodo(request.getName()));
+                .mapTodoToUserTodoResponse(userTodoService.saveNewTodo(request.getName(), request.getEstimatedTime()));
 
        return ResponseEntity.created(new URI("/api/todo/" + response.getId())).body(response);
     }
@@ -64,11 +64,10 @@ public class TodoRestController {
 
     @PostMapping("/todos")
     public ResponseEntity<List<ResponseEntity<UserTodoResponse>>> addTodos(@Valid @RequestBody UserTodosRequest request) throws URISyntaxException {
-        List<String> todoNames = request.getNames();
         List<ResponseEntity<UserTodoResponse>> responses = new ArrayList<>();
 
         var overallResponse = userTodoMapper.mapTodoListToUserTodosResponse(
-                userTodoService.saveNewTodos(todoNames));
+                userTodoService.saveNewTodos(request.getNewTodos()));
 
         for (UserTodoResponse response : overallResponse.getTodos()) {
             responses.add(ResponseEntity.created(new URI("/api/todo" + response.getId())).body(response));

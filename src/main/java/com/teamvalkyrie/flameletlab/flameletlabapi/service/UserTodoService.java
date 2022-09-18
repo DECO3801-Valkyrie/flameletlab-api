@@ -7,9 +7,11 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 
 @Service
@@ -28,15 +30,17 @@ public class UserTodoService {
      * @return the persisted todo
      */
     @Transactional
-    public Todo saveNewTodo(String todo) {
+    public Todo saveNewTodo(String todo, Duration estimatedTime) {
         User currentUser = userService.getCurrentLoggedInUser();
-
         Todo newTodo = new Todo();
+
         newTodo.setName(todo);
         newTodo.setUser(currentUser);
         newTodo.setCreated(ZonedDateTime.now()); // @TODO use users timezone
         newTodo.setDateCompleted(null);
         newTodo.setDone(false);
+        newTodo.setEstimatedTime(estimatedTime);
+
         return todoRepository.save(newTodo);
     }
 
@@ -44,17 +48,17 @@ public class UserTodoService {
      * Saves a list of todos to the database, in which
      * each todo is marked as not done
      *
-     * @param todoNames the names of the new tasks
+     * @param newTodos name : duration pairs for new todo objects
      * @return a list of the newly created todo objects
      */
     @Transactional
-    public List<Todo> saveNewTodos(List<String> todoNames) {
+    public List<Todo> saveNewTodos(Map<String, Duration> newTodos) {
         List<Todo> todos = new ArrayList<>();
 
-        for (String todoName : todoNames) {
+        for (String todoName : newTodos.keySet()) {
             // saveNewTodo method already saves to
             // the database
-            todos.add(saveNewTodo(todoName));
+            todos.add(saveNewTodo(todoName, newTodos.get(todoName)));
         }
 
         return todos;
