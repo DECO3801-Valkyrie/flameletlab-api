@@ -13,7 +13,6 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 
 @Service
@@ -139,7 +138,7 @@ public class UserTodoService {
 
     public boolean validTodosRequest(UserTodosRequest request) {
         int namesLen = request.getNames().size();
-        int durationsLen = request.getDurations().size();
+        int durationsLen = request.getEstimatedDurations().size();
         int estimatedStartsLen = request.getEstimatedStarts().size();
 
         List<Integer> lens = Arrays.asList(namesLen, durationsLen, estimatedStartsLen);

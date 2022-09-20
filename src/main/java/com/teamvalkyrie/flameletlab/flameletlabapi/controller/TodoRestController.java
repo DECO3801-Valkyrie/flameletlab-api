@@ -73,7 +73,7 @@ public class TodoRestController {
         }
 
         var overallResponse = userTodoMapper.mapTodoListToUserTodosResponse(
-                userTodoService.saveNewTodos(request.getNames(), request.getDurations(), request.getEstimatedStarts()));
+                userTodoService.saveNewTodos(request.getNames(), request.getEstimatedDurations(), request.getEstimatedStarts()));
 
         for (UserTodoResponse response : overallResponse.getTodos()) {
             responses.add(ResponseEntity.created(new URI("/api/todo" + response.getId())).body(response));
