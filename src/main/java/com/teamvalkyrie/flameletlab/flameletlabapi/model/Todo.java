@@ -34,6 +34,9 @@ public class Todo {
     @Column
     private Duration estimatedTime;
 
+    @Column
+    private ZonedDateTime estimatedStart;
+
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private User user;

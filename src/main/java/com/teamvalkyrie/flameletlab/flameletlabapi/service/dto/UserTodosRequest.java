@@ -4,11 +4,18 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Duration;
-import java.util.Map;
+import java.time.ZonedDateTime;
+import java.util.List;
 
 @Getter
 @Setter
 public class UserTodosRequest {
-    // todoName : lengthOfTodo
-    private Map<String, Duration> newTodos;
+    // one to one correspondence between
+    // each list
+
+    private List<String> names;
+
+    private List<Duration> estimatedDurations;
+
+    private List<ZonedDateTime> estimatedStarts;
 }

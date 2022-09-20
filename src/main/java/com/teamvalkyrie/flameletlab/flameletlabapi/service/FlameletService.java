@@ -1,25 +1,44 @@
 package com.teamvalkyrie.flameletlab.flameletlabapi.service;
 
 import com.teamvalkyrie.flameletlab.flameletlabapi.model.Flamelet;
+import com.teamvalkyrie.flameletlab.flameletlabapi.model.Todo;
 import com.teamvalkyrie.flameletlab.flameletlabapi.model.User;
 import com.teamvalkyrie.flameletlab.flameletlabapi.repository.FlameletRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import java.time.*;
+import java.util.*;
 
 @Service
 @Transactional(readOnly = true)
 @AllArgsConstructor
 public class FlameletService {
     private enum Mood {
+        CONCERNED,
         NEUTRAL,
         HAPPY,
         EXCITED,
         JOYFUL,
         EXHILARATED,
         EUPHORIC
+    }
+
+    private static final Duration dailyTreshold = initDailyTreshold();
+
+    private static Duration initDailyTreshold() {
+        int hours = 8;
+
+        return Duration.ofHours(hours);
+    }
+
+    private static final List<Mood> positiveMoods = initPositiveMoods();
+
+    private static List<Mood> initPositiveMoods() {
+        Mood[] positiveMoods = {Mood.HAPPY, Mood.EXCITED, Mood.JOYFUL, Mood.EXHILARATED, Mood.EUPHORIC};
+
+        return new ArrayList<>(Arrays.asList(positiveMoods));
     }
 
     // number of todo nodes for a threshold to be reached
@@ -61,50 +80,129 @@ public class FlameletService {
         return optionalFlamelet.get();
     }
 
+    private boolean todoOverdue(Todo todo) {
+        if (todo.getDateCompleted() != null) {
+            return false;
+        }
+
+        Duration estimatedTime = todo.getEstimatedTime();
+        ZonedDateTime dueByTime = todo.getCreated().plus(estimatedTime);
+        ZonedDateTime currTime = ZonedDateTime.from(Instant.now());
+
+        return currTime.isAfter(dueByTime);
+    }
+
+    private boolean anyTodoOverdue(List<Todo> todos) {
+        boolean anyOverdue = false;
+
+        for (Todo todo : todos) {
+            if (todoOverdue(todo)) {
+                anyOverdue = true;
+                break;
+            }
+        }
+
+        return anyOverdue;
+    }
+
+    private OffsetDateTime getMidnightNextDay(OffsetDateTime dateTime) {
+        ZonedDateTime midnightNextDay = dateTime.plusDays(1).toLocalDate().
+                atStartOfDay(dateTime.getOffset());
+
+        return midnightNextDay.toOffsetDateTime();
+
+    }
+
+    private Duration timeLeftInDay(OffsetDateTime dateTime) {
+        // get the dateTime for the day tommorow, then roll it back to
+        // midnight
+        OffsetDateTime midnightNextDay = getMidnightNextDay(dateTime);
+
+        return Duration.between(dateTime, midnightNextDay);
+    }
+
+    private void addTime(Map<LocalDate, List<Duration>> sortedTimes,
+                          OffsetDateTime estimatedStart, Duration estimatedDuration) {
+        OffsetDateTime estimatedFinish = estimatedStart.plus(estimatedDuration);
+        LocalDate estFinishDate = estimatedFinish.toLocalDate();
+        LocalDate estStartDate = estimatedStart.toLocalDate();
+
+        if (estFinishDate == estStartDate) {
+            sortedTimes.get(estFinishDate).add(estimatedDuration);
+            return;
+        }
+
+        // handles the case where a user adds a task during for a certain time
+        // but the estimated time is so long that it carries to the next day
+        // I've done this so night owls can use the app the same way as everyone
+        // else.
+        //
+        // E.g if I start something at 10:00pm and set the estimated time
+        // for 8 hours, and I've already done 1 hour of tasks today, I shouldn't
+        // be told to reschedule as there only is 2 more hours left in the day, not 7/8.
+        //
+        // Important part: for todos that span over days, split the time period
+        // accordingly and place that duration into its corresponding date/day list
+
+        Duration timeLeftInDay = timeLeftInDay(estimatedStart);
+        sortedTimes.get(estStartDate).add(timeLeftInDay);
+        estimatedDuration = estimatedDuration.minus(timeLeftInDay);
+
+        // recursion magic
+        addTime(sortedTimes, getMidnightNextDay(estimatedStart), estimatedDuration);
+    }
+
+    private boolean overThresholdAnyDay(List<Todo> todos, Duration threshold) {
+        Map<LocalDate, List<Duration>> sortedTimes = new HashMap<>();
+
+        for (Todo todo : todos) {
+            OffsetDateTime estimatedStart = todo.getEstimatedStart().toOffsetDateTime();
+            Duration estimatedDuration = todo.getEstimatedTime();
+
+            addTime(sortedTimes, estimatedStart, estimatedDuration);
+        }
+
+        for (LocalDate day : sortedTimes.keySet()) {
+            Duration totalDailyTime = Duration.ZERO;
+
+            for (Duration estmTaskLen : sortedTimes.get(day)) {
+                totalDailyTime = totalDailyTime.plus(estmTaskLen);
+                int compVal = totalDailyTime.compareTo(threshold);
+
+                if (compVal > 0) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private Mood randomPositiveMood() {
+        int numPositiveMoods = positiveMoods.size();
+
+        return positiveMoods.get((int) (Math.random() % numPositiveMoods));
+    }
+
     /**
      * Looks at the users todos and calculates the mood for flamelet based on them
      * @param user
      * @return flamelet's mood
      */
-    private String calculateFlameletMood(User user) {
+    private String calculateFlameletMood(User user, Duration threshold) {
         Mood mood;
+        List<Todo> todos = userTodoService.getTodoList(user);
 
-        int numTodos = userTodoService.getNumberOfTodos(user);
-        double doneProportion = 0;
-
-        if (numTodos != 0) {
-            doneProportion = (float) userTodoService.getNumberOfDoneTodos(user) / numTodos;
-        }
-
-        /*
-         * Follows a discrete linear relationship between the proportion of
-         * todos done flamelet's mood
-         * the moods are ordered from least to greatest as follows:
-         * {"neutral", "happy", "excited", "joyful", "exhilarated", "euphoric"}
-         * from moods neutral-exhilarated it occupies one quintile (20%) according
-         * to the ordering (neutral goes from 0 to 0.19999....)
-         *
-         * "euphoric" is the upper bound and is only achieved iff all tasks are done
-         *
-         * the todoThreshold makes it so iff the number of todos < threshold, the highest
-         * mood flamelet can be is "excited"
-         */
-        if (0.2 <= doneProportion && doneProportion < 0.4) {
-            mood = Mood.HAPPY;
-        } else if ((0.4 <= doneProportion && doneProportion < 0.6) ||
-                (doneProportion == 1 && numTodos < todoThreshold)) {
-            mood = Mood.EXCITED;
-        } else if (0.6 <= doneProportion && doneProportion < 0.8) {
-            mood = Mood.JOYFUL;
-        } else if (0.8 <= doneProportion && doneProportion < 1) {
-            mood = Mood.EXHILARATED;
-        } else if (doneProportion == 1) {
-            mood = Mood.EUPHORIC;
+        if (anyTodoOverdue(todos) || overThresholdAnyDay(todos, threshold)) {
+            mood = Mood.CONCERNED;
         } else {
-            mood = Mood.NEUTRAL;
+            // TODO : still need to work on this
+            // need to change/get a positive mood
+            // each time a task is completed
+            mood = randomPositiveMood();
         }
 
-        return mood.toString().toLowerCase();
+        return mood.toString();
     }
 
     /**
@@ -135,7 +233,6 @@ public class FlameletService {
 
         // mood doesn't need to be stored in DB, just
         // calculate when it's needed
-        return calculateFlameletMood(user);
+        return calculateFlameletMood(user, dailyTreshold);
     }
-
 }
