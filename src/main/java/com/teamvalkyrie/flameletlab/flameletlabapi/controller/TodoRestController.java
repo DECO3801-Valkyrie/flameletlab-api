@@ -6,6 +6,7 @@ import com.teamvalkyrie.flameletlab.flameletlabapi.service.UserService;
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.*;
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.mapper.UserTodoMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,7 +28,8 @@ public class TodoRestController {
     @PostMapping("/todo")
     public ResponseEntity<UserTodoResponse> createTodo(@Valid @RequestBody UserTodoRequest request) throws URISyntaxException {
         var response = userTodoMapper
-                .mapTodoToUserTodoResponse(userTodoService.saveNewTodo(request.getName(), request.getEstimatedTime()));
+                .mapTodoToUserTodoResponse(userTodoService.saveNewTodo(request.getName(), request.getEstimatedTime(),
+                        request.getEstimatedStart()));
 
        return ResponseEntity.created(new URI("/api/todo/" + response.getId())).body(response);
     }
@@ -66,8 +68,12 @@ public class TodoRestController {
     public ResponseEntity<List<ResponseEntity<UserTodoResponse>>> addTodos(@Valid @RequestBody UserTodosRequest request) throws URISyntaxException {
         List<ResponseEntity<UserTodoResponse>> responses = new ArrayList<>();
 
+        if (!userTodoService.validTodosRequest(request)) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
         var overallResponse = userTodoMapper.mapTodoListToUserTodosResponse(
-                userTodoService.saveNewTodos(request.getNewTodos()));
+                userTodoService.saveNewTodos(request.getNames(), request.getDurations(), request.getEstimatedStarts()));
 
         for (UserTodoResponse response : overallResponse.getTodos()) {
             responses.add(ResponseEntity.created(new URI("/api/todo" + response.getId())).body(response));
