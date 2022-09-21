@@ -49,6 +49,10 @@ public class Todo {
         return id != null && Objects.equals(id, todo.id);
     }
 
+    public boolean isDone() {
+        return done;
+    }
+
     @Override
     public int hashCode() {
         return getClass().hashCode();

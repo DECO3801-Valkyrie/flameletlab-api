@@ -33,10 +33,10 @@ public class FlameletService {
         return Duration.ofHours(hours);
     }
 
-    private static final List<Mood> positiveMoods = initPositiveMoods();
+    private static final List<Mood> normalPositiveMoods = initNormalPositiveMoods();
 
-    private static List<Mood> initPositiveMoods() {
-        Mood[] positiveMoods = {Mood.HAPPY, Mood.EXCITED, Mood.JOYFUL, Mood.EXHILARATED, Mood.EUPHORIC};
+    private static List<Mood> initNormalPositiveMoods() {
+        Mood[] positiveMoods = {Mood.HAPPY, Mood.EXCITED, Mood.JOYFUL, Mood.EXHILARATED};
 
         return new ArrayList<>(Arrays.asList(positiveMoods));
     }
@@ -179,27 +179,28 @@ public class FlameletService {
     }
 
     private Mood randomPositiveMood() {
-        int numPositiveMoods = positiveMoods.size();
+        int numPositiveMoods = normalPositiveMoods.size();
 
-        return positiveMoods.get((int) (Math.random() % numPositiveMoods));
+        // TODO : if all tasks are done for day, return euphoric
+
+        return normalPositiveMoods.get((int) (Math.random() % numPositiveMoods));
     }
 
-    /**
-     * Looks at the users todos and calculates the mood for flamelet based on them
-     * @param user
-     * @return flamelet's mood
-     */
-    private String calculateFlameletMood(User user, Duration threshold) {
-        Mood mood;
+    public Boolean checkIfConcerned(User user) {
         List<Todo> todos = userTodoService.getTodoList(user);
 
-        if (anyTodoOverdue(todos) || overThresholdAnyDay(todos, threshold)) {
+        return anyTodoOverdue(todos) || overThresholdAnyDay(todos, dailyTreshold);
+    }
+
+    public String moodForTodo(Todo todo) {
+        Mood mood;
+
+        if (todoOverdue(todo)) {
             mood = Mood.CONCERNED;
-        } else {
-            // TODO : still need to work on this
-            // need to change/get a positive mood
-            // each time a task is completed
+        } else if (todo.isDone()) {
             mood = randomPositiveMood();
+        } else {
+            mood = Mood.NEUTRAL;
         }
 
         return mood.toString();
@@ -219,20 +220,5 @@ public class FlameletService {
         flamelet.setMood(Mood.NEUTRAL.name());
 
         return flameletRepository.save(flamelet);
-    }
-
-    /**
-     * Gets the current mood of a user's flamelet.
-     * @param user
-     * @return user's flamelet's mood
-     */
-    public String getMood(User user) {
-        //String mood;
-        //setMood(user); // updates flamelet's mood
-        //mood = getUsersFlamelet(user).getMood();
-
-        // mood doesn't need to be stored in DB, just
-        // calculate when it's needed
-        return calculateFlameletMood(user, dailyTreshold);
     }
 }
