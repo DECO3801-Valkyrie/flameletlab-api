@@ -87,7 +87,8 @@ public class FlameletService {
 
         Duration estimatedTime = todo.getEstimatedTime();
         ZonedDateTime dueByTime = todo.getCreated().plus(estimatedTime);
-        ZonedDateTime currTime = ZonedDateTime.from(Instant.now());
+
+        ZonedDateTime currTime = ZonedDateTime.now(dueByTime.getZone());
 
         return currTime.isAfter(dueByTime);
     }
@@ -105,25 +106,24 @@ public class FlameletService {
         return anyOverdue;
     }
 
-    private OffsetDateTime getMidnightNextDay(OffsetDateTime dateTime) {
-        ZonedDateTime midnightNextDay = dateTime.plusDays(1).toLocalDate().
-                atStartOfDay(dateTime.getOffset());
+    private ZonedDateTime getMidnightNextDay(ZonedDateTime dateTime) {
 
-        return midnightNextDay.toOffsetDateTime();
+        return dateTime.plusDays(1).toLocalDate().
+                atStartOfDay(dateTime.getZone());
 
     }
 
-    private Duration timeLeftInDay(OffsetDateTime dateTime) {
+    private Duration timeLeftInDay(ZonedDateTime dateTime) {
         // get the dateTime for the day tommorow, then roll it back to
         // midnight
-        OffsetDateTime midnightNextDay = getMidnightNextDay(dateTime);
+        ZonedDateTime midnightNextDay = getMidnightNextDay(dateTime);
 
         return Duration.between(dateTime, midnightNextDay);
     }
 
     private void addTime(Map<LocalDate, List<Duration>> sortedTimes,
-                          OffsetDateTime estimatedStart, Duration estimatedDuration) {
-        OffsetDateTime estimatedFinish = estimatedStart.plus(estimatedDuration);
+                          ZonedDateTime estimatedStart, Duration estimatedDuration) {
+        ZonedDateTime estimatedFinish = estimatedStart.plus(estimatedDuration);
         LocalDate estFinishDate = estimatedFinish.toLocalDate();
         LocalDate estStartDate = estimatedStart.toLocalDate();
 
@@ -156,7 +156,7 @@ public class FlameletService {
         Map<LocalDate, List<Duration>> sortedTimes = new HashMap<>();
 
         for (Todo todo : todos) {
-            OffsetDateTime estimatedStart = todo.getEstimatedStart().toOffsetDateTime();
+            ZonedDateTime estimatedStart = todo.getEstimatedStart();
             Duration estimatedDuration = todo.getEstimatedTime();
 
             addTime(sortedTimes, estimatedStart, estimatedDuration);
