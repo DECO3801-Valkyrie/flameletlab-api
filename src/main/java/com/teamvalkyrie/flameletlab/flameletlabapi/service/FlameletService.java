@@ -89,6 +89,8 @@ public class FlameletService {
         ZonedDateTime dueByTime = todo.getCreated().plus(estimatedTime);
 
         ZonedDateTime currTime = ZonedDateTime.now(dueByTime.getZone());
+        System.out.println(currTime);
+        System.out.println(dueByTime);
 
         return currTime.isAfter(dueByTime);
     }
@@ -126,9 +128,13 @@ public class FlameletService {
         ZonedDateTime estimatedFinish = estimatedStart.plus(estimatedDuration);
         LocalDate estFinishDate = estimatedFinish.toLocalDate();
         LocalDate estStartDate = estimatedStart.toLocalDate();
+        List<Duration> durations;
 
         if (estFinishDate == estStartDate) {
-            sortedTimes.get(estFinishDate).add(estimatedDuration);
+            durations = sortedTimes.computeIfAbsent(estFinishDate, k -> new ArrayList<>());
+
+            durations.add(estimatedDuration);
+            //sortedTimes.get(estFinishDate).add(estimatedDuration);
             return;
         }
 
@@ -145,7 +151,8 @@ public class FlameletService {
         // accordingly and place that duration into its corresponding date/day list
 
         Duration timeLeftInDay = timeLeftInDay(estimatedStart);
-        sortedTimes.get(estStartDate).add(timeLeftInDay);
+        durations = sortedTimes.computeIfAbsent(estStartDate, k -> new ArrayList<>());
+        durations.add(timeLeftInDay);
         estimatedDuration = estimatedDuration.minus(timeLeftInDay);
 
         // recursion magic
@@ -161,6 +168,9 @@ public class FlameletService {
 
             addTime(sortedTimes, estimatedStart, estimatedDuration);
         }
+
+        System.out.println(todos);
+        System.out.println(sortedTimes);
 
         for (LocalDate day : sortedTimes.keySet()) {
             Duration totalDailyTime = Duration.ZERO;
