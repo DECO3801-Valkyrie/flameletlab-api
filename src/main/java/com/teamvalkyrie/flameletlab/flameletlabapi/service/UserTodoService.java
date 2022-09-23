@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -134,6 +136,11 @@ public class UserTodoService {
 
     public int getNumberOfTodos(User user) {
         return (int) todoRepository.countByUser(user);
+    }
+
+    public int getNumberDoneTodosForDay(User user, LocalDate date, ZoneId timeZone) {
+        // TODO : do this for euphoric
+        return -1;
     }
 
     public boolean validTodosRequest(UserTodosRequest request) {

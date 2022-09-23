@@ -37,11 +37,10 @@ public class FlameletRestController {
     @PostMapping("/flamelet")
     public ResponseEntity<UserFlameletMoodResponse> getMoodForTodo(@Valid @RequestBody UserTodoRequestWithId request) {
         Todo todo = userTodoService.getTodo(request.getId());
-
-        System.out.println(request.getId());
+        User current = userService.getCurrentLoggedInUser();
 
         var response = flameletMapper.mapFlameletMoodToFlameletMoodResponse(
-                flameletService.moodForTodo(todo));
+                flameletService.moodForTodo(current, todo));
 
         return ResponseEntity.ok(response);
     }

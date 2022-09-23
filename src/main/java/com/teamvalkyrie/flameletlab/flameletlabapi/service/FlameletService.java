@@ -87,10 +87,7 @@ public class FlameletService {
 
         Duration estimatedTime = todo.getEstimatedTime();
         ZonedDateTime dueByTime = todo.getCreated().plus(estimatedTime);
-
         ZonedDateTime currTime = ZonedDateTime.now(dueByTime.getZone());
-        System.out.println(currTime);
-        System.out.println(dueByTime);
 
         return currTime.isAfter(dueByTime);
     }
@@ -123,8 +120,24 @@ public class FlameletService {
         return Duration.between(dateTime, midnightNextDay);
     }
 
+    /**
+     * Helper method for overThresholdAnyDay. Given sortedTimes map, a start date and
+     * duration, maps the date to the duration. If the duration spans over multiple days,
+     * multiple dates will be mapped, with the duration split over the dates.
+
+     * The dates mapped may be different to what was specified as the method shifts the timezone
+     * to the system default to maintain consistency.
+     * @param sortedTimes map date -> list of durations of tasks for the date
+     * @param estimatedStart when the task if hopefully started
+     * @param estimatedDuration how long the task hopefully takes
+     */
     private void addTime(Map<LocalDate, List<Duration>> sortedTimes,
                           ZonedDateTime estimatedStart, Duration estimatedDuration) {
+        // make sure all times are on the same zone
+        ZoneId commonTimeZone = ZoneId.systemDefault();
+        estimatedStart = estimatedStart.withZoneSameInstant(commonTimeZone);
+
+
         ZonedDateTime estimatedFinish = estimatedStart.plus(estimatedDuration);
         LocalDate estFinishDate = estimatedFinish.toLocalDate();
         LocalDate estStartDate = estimatedStart.toLocalDate();
@@ -132,7 +145,6 @@ public class FlameletService {
 
         if (estFinishDate == estStartDate) {
             durations = sortedTimes.computeIfAbsent(estFinishDate, k -> new ArrayList<>());
-
             durations.add(estimatedDuration);
             //sortedTimes.get(estFinishDate).add(estimatedDuration);
             return;
@@ -169,9 +181,6 @@ public class FlameletService {
             addTime(sortedTimes, estimatedStart, estimatedDuration);
         }
 
-        System.out.println(todos);
-        System.out.println(sortedTimes);
-
         for (LocalDate day : sortedTimes.keySet()) {
             Duration totalDailyTime = Duration.ZERO;
 
@@ -202,13 +211,70 @@ public class FlameletService {
         return anyTodoOverdue(todos) || overThresholdAnyDay(todos, dailyTreshold);
     }
 
-    public String moodForTodo(Todo todo) {
+    private Map<LocalDate, Set<Todo>> mapTodosToDay(Set<Todo> todos, ZoneId timeZone) {
+        Map<LocalDate, Set<Todo>> tasksForEachDay = new HashMap<>();
+        Set<Todo> dailyTodos;
+
+        ZonedDateTime estCompleteDateTime;
+        LocalDate estCompleteDate;
+
+        for (Todo todo : todos) {
+            if (!todo.isDone() && !todoOverdue(todo)) {
+                ZonedDateTime estStart = todo.getEstimatedStart().withZoneSameInstant(timeZone);
+
+                estCompleteDateTime  = estStart.plus(todo.getEstimatedTime());
+                estCompleteDate = estCompleteDateTime.toLocalDate();
+            } else if (todo.isDone()) {
+                estCompleteDateTime = todo.getDateCompleted().withZoneSameInstant(timeZone);
+                estCompleteDate = estCompleteDateTime.toLocalDate();
+            } else {
+                // it's overdue
+                estCompleteDate = ZonedDateTime.now(timeZone).toLocalDate();
+            }
+
+            dailyTodos = tasksForEachDay.computeIfAbsent(estCompleteDate, k -> new HashSet<>());
+            dailyTodos.add(todo);
+        }
+
+        return tasksForEachDay;
+    }
+
+    private Boolean tasksDoneForDay(Set<Todo> todos, LocalDate day, ZoneId timeZone) {
+        Map<LocalDate, Set<Todo>> tasksForEachDay = mapTodosToDay(todos, timeZone);
+        Set<Todo> dailyTodos;
+
+        dailyTodos = tasksForEachDay.get(day);
+
+        if (dailyTodos == null) {
+            return true;
+        }
+
+        for (Todo todo : dailyTodos) {
+            if (!todo.isDone()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public String moodForTodo(User user, Todo todo) {
+        ZoneId commonTimeZone = ZoneId.systemDefault();
         Mood mood;
 
         if (todoOverdue(todo)) {
             mood = Mood.CONCERNED;
         } else if (todo.isDone()) {
-            mood = randomPositiveMood();
+            if (tasksDoneForDay(user.getTodos(),
+                    todo.getDateCompleted().toLocalDate(),
+                    commonTimeZone)) {
+                // TODO : strengthen condition so
+                // euphoric requires at least 3
+                // todos in a day
+                mood = Mood.EUPHORIC;
+            } else {
+                mood = randomPositiveMood();
+            }
         } else {
             mood = Mood.NEUTRAL;
         }
