@@ -28,6 +28,8 @@ public class WorkplaceService {
         workplace.setPlaceId(placeId);
         workplace.setName(name);
         workplace.setLocation(location);
+        workplace.setReviewsCount(0);
+        workplace.setAverageRating(0.0f);
         return workplaceRepository.save(workplace);
     }
 
