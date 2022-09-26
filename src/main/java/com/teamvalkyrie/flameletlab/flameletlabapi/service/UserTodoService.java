@@ -8,10 +8,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -138,9 +135,12 @@ public class UserTodoService {
         return (int) todoRepository.countByUser(user);
     }
 
-    public int getNumberDoneTodosForDay(User user, LocalDate date, ZoneId timeZone) {
+    public long getNumberDoneTodosForDay(User user, LocalDate date, ZoneId timeZone) {
         // TODO : do this for euphoric
-        return -1;
+        ZonedDateTime startOfDay = ZonedDateTime.of(date, LocalTime.MIDNIGHT, timeZone);
+        ZonedDateTime startOfNextDay = startOfDay.plusDays(1);
+
+        return todoRepository.countByUserAndDateCompletedInRange(user.getId(), startOfDay, startOfNextDay);
     }
 
     public boolean validTodosRequest(UserTodosRequest request) {

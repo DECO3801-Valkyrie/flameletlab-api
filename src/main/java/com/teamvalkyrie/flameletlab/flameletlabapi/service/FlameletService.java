@@ -265,12 +265,14 @@ public class FlameletService {
         if (todoOverdue(todo)) {
             mood = Mood.CONCERNED;
         } else if (todo.isDone()) {
+            LocalDate doneDay = todo.getDateCompleted().toLocalDate();
+            ZoneId doneTimeZone = todo.getDateCompleted().getZone();
+            long numDoneTasksForDay = userTodoService.getNumberDoneTodosForDay(user, doneDay, doneTimeZone);
+
             if (tasksDoneForDay(user.getTodos(),
                     todo.getDateCompleted().toLocalDate(),
-                    commonTimeZone)) {
-                // TODO : strengthen condition so
-                // euphoric requires at least 3
-                // todos in a day
+                    commonTimeZone) && numDoneTasksForDay > 3) {
+                // TODO : test condition
                 mood = Mood.EUPHORIC;
             } else {
                 mood = randomPositiveMood();
