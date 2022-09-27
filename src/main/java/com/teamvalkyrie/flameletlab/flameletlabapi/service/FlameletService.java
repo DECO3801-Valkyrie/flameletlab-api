@@ -22,7 +22,8 @@ public class FlameletService {
         EXCITED,
         JOYFUL,
         EXHILARATED,
-        EUPHORIC
+        EUPHORIC,
+        STAYSAME
     }
 
     private static final Duration dailyTreshold = initDailyTreshold();
@@ -272,13 +273,14 @@ public class FlameletService {
             if (tasksDoneForDay(user.getTodos(),
                     todo.getDateCompleted().toLocalDate(),
                     commonTimeZone) && numDoneTasksForDay > 3) {
-                // TODO : test condition
                 mood = Mood.EUPHORIC;
             } else {
                 mood = randomPositiveMood();
             }
-        } else {
+        } else if (userTodoService.getNumberOfDoneTodos(user) == 0) {
             mood = Mood.NEUTRAL;
+        } else {
+            mood = Mood.STAYSAME;
         }
 
         return mood.toString();
