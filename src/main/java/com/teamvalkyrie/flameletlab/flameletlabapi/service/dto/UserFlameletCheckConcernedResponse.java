@@ -5,6 +5,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class UserTodoRequestWithId {
-    private long id;
+public class UserFlameletCheckConcernedResponse {
+    boolean isConcerned;
 }

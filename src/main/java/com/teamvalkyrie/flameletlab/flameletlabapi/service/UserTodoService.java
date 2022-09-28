@@ -3,12 +3,14 @@ package com.teamvalkyrie.flameletlab.flameletlabapi.service;
 import com.teamvalkyrie.flameletlab.flameletlabapi.model.Todo;
 import com.teamvalkyrie.flameletlab.flameletlabapi.model.User;
 import com.teamvalkyrie.flameletlab.flameletlabapi.repository.TodoRepository;
+import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.UserTodosRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -25,36 +27,46 @@ public class UserTodoService {
      * and associated with the current logged in user
      *
      * @param todo the name of the new tasked
+     * @param estimatedTime estimated len of how long a task will take
+     * @param estimatedStart when the user thinks they will start the task
      * @return the persisted todo
      */
     @Transactional
-    public Todo saveNewTodo(String todo) {
+    public Todo saveNewTodo(String todo, Duration estimatedTime, ZonedDateTime estimatedStart) {
         User currentUser = userService.getCurrentLoggedInUser();
-
         Todo newTodo = new Todo();
+
         newTodo.setName(todo);
         newTodo.setUser(currentUser);
         newTodo.setCreated(ZonedDateTime.now()); // @TODO use users timezone
         newTodo.setDateCompleted(null);
         newTodo.setDone(false);
+        newTodo.setEstimatedTime(estimatedTime);
+        newTodo.setEstimatedStart(estimatedStart);
+
         return todoRepository.save(newTodo);
     }
 
     /**
-     * Saves a list of todos to the database, in which
-     * each todo is marked as not done
+     * Given list fields for todos, saves todos to the database.
+     * Each list should have the exact same length as all others.
+     * Each list element should directly correspond to each other.
+     * I.e the elements in position 0 for each list are used create
+     * a todo element.
      *
-     * @param todoNames the names of the new tasks
+     * @param names todo names
+     * @param durations todo durations
+     * @param estimatedStarts todo estimated starting date-times
      * @return a list of the newly created todo objects
      */
     @Transactional
-    public List<Todo> saveNewTodos(List<String> todoNames) {
+    public List<Todo> saveNewTodos(List<String> names, List<Duration> durations, List<ZonedDateTime> estimatedStarts) {
         List<Todo> todos = new ArrayList<>();
 
-        for (String todoName : todoNames) {
+        for (int i = 0; i < names.size(); i++) {
             // saveNewTodo method already saves to
             // the database
-            todos.add(saveNewTodo(todoName));
+            todos.add(saveNewTodo(names.get(i), durations.get(i), estimatedStarts.get(i)));
         }
 
         return todos;
@@ -121,5 +133,23 @@ public class UserTodoService {
 
     public int getNumberOfTodos(User user) {
         return (int) todoRepository.countByUser(user);
+    }
+
+    public long getNumberDoneTodosForDay(User user, LocalDate date, ZoneId timeZone) {
+        // TODO : do this for euphoric
+        ZonedDateTime startOfDay = ZonedDateTime.of(date, LocalTime.MIDNIGHT, timeZone);
+        ZonedDateTime startOfNextDay = startOfDay.plusDays(1);
+
+        return todoRepository.countByUserAndDateCompletedInRange(user.getId(), startOfDay, startOfNextDay);
+    }
+
+    public boolean validTodosRequest(UserTodosRequest request) {
+        int namesLen = request.getNames().size();
+        int durationsLen = request.getEstimatedDurations().size();
+        int estimatedStartsLen = request.getEstimatedStarts().size();
+
+        List<Integer> lens = Arrays.asList(namesLen, durationsLen, estimatedStartsLen);
+
+        return lens.stream().allMatch(x -> x.equals(lens.get(0)));
     }
 }

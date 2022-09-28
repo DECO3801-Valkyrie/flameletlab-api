@@ -4,6 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Duration;
 import java.time.ZonedDateTime;
 
 @Getter
@@ -20,4 +21,8 @@ public class UserTodoResponse {
     private ZonedDateTime created;
 
     private ZonedDateTime dateCompleted;
+
+    private Duration estimatedTime;
+
+    private ZonedDateTime estimatedStart;
 }

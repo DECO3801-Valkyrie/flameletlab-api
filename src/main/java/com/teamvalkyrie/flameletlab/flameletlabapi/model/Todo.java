@@ -5,6 +5,7 @@ import lombok.Setter;
 import org.hibernate.Hibernate;
 
 import javax.persistence.*;
+import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Objects;
 
@@ -30,6 +31,12 @@ public class Todo {
     @Column
     private ZonedDateTime dateCompleted;
 
+    @Column
+    private Duration estimatedTime;
+
+    @Column
+    private ZonedDateTime estimatedStart;
+
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private User user;
@@ -40,6 +47,10 @@ public class Todo {
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
         Todo todo = (Todo) o;
         return id != null && Objects.equals(id, todo.id);
+    }
+
+    public boolean isDone() {
+        return done;
     }
 
     @Override
