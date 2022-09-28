@@ -1,8 +1,10 @@
 package com.teamvalkyrie.flameletlab.flameletlabapi.service;
 
 import com.teamvalkyrie.flameletlab.flameletlabapi.model.Workplace;
+import com.teamvalkyrie.flameletlab.flameletlabapi.model.WorkplaceRating;
 import com.teamvalkyrie.flameletlab.flameletlabapi.repository.WorkplaceRepository;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,9 +12,10 @@ import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class WorkplaceService {
     private final WorkplaceRepository workplaceRepository;
+
 
     /**
      * Creates a new workplace
@@ -32,6 +35,7 @@ public class WorkplaceService {
         workplace.setAverageRating(0.0f);
         return workplaceRepository.save(workplace);
     }
+
 
     /**
      * Gets all the workplaces that have ratings.

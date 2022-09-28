@@ -20,13 +20,51 @@ import java.util.List;
 @Transactional(readOnly = true)
 @AllArgsConstructor
 public class WorkplaceRatingService {
-
+    private final float ONE_STAR = 1F;
+    private final float TWO_STAR = 2F;
+    private final float THREE_STAR = 3F;
+    private final float FOUR_STAR = 4F;
+    private final float FIVE_STAR = 5F;
     private final WorkplaceRatingRepository workplaceRatingRepository;
     private final UserService userService;
     private final WorkplaceRepository workplaceRepository;
 
     private final WorkplaceService workplaceService;
 
+    /**
+     * Counts the total number of the stars for provided star.
+     * e.g. get the total number of 1 star ratings.
+     *
+     * @param ratings the list of ratings
+     * @param stars the stars number (1,2,3,4,5)
+     * @return the total for
+     */
+    private long getStarRatingCountFor(List<WorkplaceRating> ratings, float stars) {
+        return ratings.stream().filter(wr -> wr.getRating().equals(stars)).count();
+    }
+
+
+    /**
+     * Update the workplace average rating and number of ratings received.
+     *
+     * @param workplace the workplace to update
+     */
+    private void updateWorkplaceAverageRatingAndRatingsCount(Workplace workplace) {
+        var ratings = getAllRatingsByPlaceId(workplace.getPlaceId());
+        long totalOneRatings = getStarRatingCountFor(ratings,ONE_STAR);
+        long totalTwoRatings = getStarRatingCountFor(ratings,TWO_STAR);
+        long totalThreeRatings = getStarRatingCountFor(ratings,THREE_STAR);
+        long totalFourRatings = getStarRatingCountFor(ratings,FOUR_STAR);
+        long totalFiveRatings = getStarRatingCountFor(ratings,FIVE_STAR);
+
+        float averageRating = (ONE_STAR*totalOneRatings+TWO_STAR*totalTwoRatings+
+                THREE_STAR*totalThreeRatings+FOUR_STAR*totalFourRatings+
+                FIVE_STAR*totalFiveRatings)/ratings.size();
+        workplace.setAverageRating(averageRating);
+        workplace.setReviewsCount(ratings.size());
+        this.workplaceRepository.save(workplace);
+
+    }
 
     /**
      * A method that saves a workplace rating.
@@ -46,7 +84,9 @@ public class WorkplaceRatingService {
             rating.setReview(request.getReview());
             rating.setCreated(ZonedDateTime.now());
             rating.setWorkplace(w);
-            return workplaceRatingRepository.save(rating);
+            rating = workplaceRatingRepository.saveAndFlush(rating);
+            updateWorkplaceAverageRatingAndRatingsCount(w);
+            return rating;
         }).orElseGet(() -> {
             WorkplaceRating rating = new WorkplaceRating();
             Workplace workplace = workplaceService.createNewWorkPlace(request.getPlaceId(), request.getPlaceName(),
@@ -56,7 +96,9 @@ public class WorkplaceRatingService {
             rating.setReview(request.getReview());
             rating.setWorkplace(workplace);
             rating.setCreated(ZonedDateTime.now());
-            return workplaceRatingRepository.save(rating);
+            rating = workplaceRatingRepository.saveAndFlush(rating);
+            updateWorkplaceAverageRatingAndRatingsCount(workplace);
+            return rating;
         });
     }
 
