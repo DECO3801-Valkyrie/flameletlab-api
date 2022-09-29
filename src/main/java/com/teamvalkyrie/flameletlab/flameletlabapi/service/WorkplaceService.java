@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
@@ -44,6 +45,16 @@ public class WorkplaceService {
      */
     public List<Workplace> getAllWorkplaces() {
         return workplaceRepository.findAll();
+    }
+
+    /**
+     * Get a workplace by place Id
+     *
+     * @param placeId the workplace placeId
+     * @return an optional with workplace in it or empty if not found
+     */
+    public Optional<Workplace> getWorkplaceByPlaceId(String placeId) {
+        return workplaceRepository.findByPlaceId(placeId);
     }
 
 }

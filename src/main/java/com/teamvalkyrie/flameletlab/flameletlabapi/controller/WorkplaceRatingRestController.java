@@ -62,4 +62,15 @@ public class WorkplaceRatingRestController {
       return  ResponseEntity.ok()
                 .body(workplaceMapper.workplaceToWorkplaceResponseList(workplaceService.getAllWorkplaces()));
     }
+
+    /**
+     * {@code GET /workplace-ratings/workplaces/{placeId}} : get a workplace by placeId
+     *
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the requested workplace
+     */
+    @GetMapping("/workplace-ratings/workplaces/{placeId}")
+    public ResponseEntity<WorkplaceResponse> getWorkplaceByPlaceId(@PathVariable String placeId) {
+        return  ResponseEntity.ok()
+                .body(workplaceMapper.workplaceToWorkplaceResponse(workplaceService.getWorkplaceByPlaceId(placeId).get()));
+    }
 }
