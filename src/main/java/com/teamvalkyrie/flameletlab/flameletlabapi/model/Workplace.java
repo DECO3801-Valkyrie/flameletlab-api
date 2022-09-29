@@ -13,14 +13,13 @@ import java.util.Objects;
 @NoArgsConstructor
 @Getter
 @Setter
-
 public class Workplace {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column
-    private String place_id;
+    private String placeId;
 
     @Column
     private String name;
@@ -28,8 +27,10 @@ public class Workplace {
     @Column
     private String location;
 
+    @Column Integer reviewsCount;
+
     @Column
-    private float average_rating;
+    private Float averageRating;
 
     @Override
     public boolean equals(Object o) {

@@ -1,0 +1,1 @@
+ALTER TABLE users_workplace_ratings ADD COLUMN created DATETIME NOT NULL AFTER rating;
