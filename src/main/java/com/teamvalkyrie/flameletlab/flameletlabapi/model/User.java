@@ -33,6 +33,10 @@ public class User {
     @OneToMany(mappedBy = "user")
     Set<Todo> todos;
 
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "occupation_type_id", referencedColumnName = "id")
+    private OccupationType occupationType;
+
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(
             name = "users_roles",

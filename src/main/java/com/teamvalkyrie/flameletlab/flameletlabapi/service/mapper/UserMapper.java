@@ -11,6 +11,7 @@ public class UserMapper {
 
     public UserRegisterResponse userToUserRegisterResponse(User user) {
         UserRegisterResponse userRegisterResponse = new UserRegisterResponse();
+        userRegisterResponse.setOccupationType(user.getOccupationType());
         userRegisterResponse.setId(user.getId());
         userRegisterResponse.setFullName(user.getFullName());
         userRegisterResponse.setEmail(user.getEmail());
@@ -23,6 +24,7 @@ public class UserMapper {
         userAccountResponse.setId(user.getId());
         userAccountResponse.setFullName(user.getFullName());
         userAccountResponse.setEmail(user.getEmail());
+        userAccountResponse.setOccupationType((user.getOccupationType()));
 
         return userAccountResponse;
     }

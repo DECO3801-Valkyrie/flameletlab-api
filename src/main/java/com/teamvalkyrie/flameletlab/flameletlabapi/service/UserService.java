@@ -1,7 +1,9 @@
 package com.teamvalkyrie.flameletlab.flameletlabapi.service;
 
+import com.teamvalkyrie.flameletlab.flameletlabapi.model.OccupationType;
 import com.teamvalkyrie.flameletlab.flameletlabapi.model.Role;
 import com.teamvalkyrie.flameletlab.flameletlabapi.model.User;
+import com.teamvalkyrie.flameletlab.flameletlabapi.repository.OccupationTypeRepository;
 import com.teamvalkyrie.flameletlab.flameletlabapi.repository.UserRepository;
 import com.teamvalkyrie.flameletlab.flameletlabapi.util.SecurityUtil;
 import lombok.AllArgsConstructor;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -28,6 +31,8 @@ public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    private final OccupationTypeRepository occupationTypeRepository;
 
     /**
      *  Find a user by their email
@@ -107,4 +112,26 @@ public class UserService implements UserDetailsService {
                 .map(role -> new SimpleGrantedAuthority(role.getRole().name()))
                 .collect(Collectors.toList());
     }
+
+    /**
+     * get all the occupation types
+     * @return list of all occupation types
+     */
+    public List <OccupationType> getAllOccupationTypes() {
+        return occupationTypeRepository.findAll();
+    }
+
+    /**
+     * Gets the user occupation type by id
+     *
+     * @param occupationTypeId the occupation type id
+     *
+     * @return an optional containing the user occupation type if found or empty
+     */
+    public Optional<OccupationType> getOccupationTypeById(long occupationTypeId) {
+        return occupationTypeRepository.findById(occupationTypeId);
+    }
+
+
+
 }
