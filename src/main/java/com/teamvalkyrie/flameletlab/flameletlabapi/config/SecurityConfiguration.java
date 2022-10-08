@@ -64,6 +64,7 @@ public class SecurityConfiguration {
                 .antMatchers(HttpMethod.OPTIONS, "/**", "/white-noise/**")
                 .permitAll()
                 .antMatchers("/api/register").permitAll()
+                .antMatchers("/api/occupation-types").permitAll()
                 .antMatchers("/api/authenticate").permitAll()
                 .antMatchers("/api/**").authenticated()
                 .and()
