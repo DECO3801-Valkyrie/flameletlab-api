@@ -44,7 +44,7 @@ public class UserTodoService {
         newTodo.setEstimatedTime(estimatedTime);
         newTodo.setEstimatedStart(estimatedStart);
 
-        return todoRepository.save(newTodo);
+        return todoRepository.saveAndFlush(newTodo);
     }
 
     /**
@@ -101,7 +101,7 @@ public class UserTodoService {
 
         currentTodo.setDateCompleted(completedTime);
         currentTodo.setDone(toggle);
-        return todoRepository.save(currentTodo);
+        return todoRepository.saveAndFlush(currentTodo);
     }
 
     /**
