@@ -111,6 +111,7 @@ public class UserTodoService {
     @Transactional
     public void deleteTodo(long id) {
         todoRepository.deleteById(id);
+        todoRepository.flush();
     }
 
     public Todo getTodo(long id) {
@@ -123,6 +124,12 @@ public class UserTodoService {
      */
     public List<Todo> getTodoList(User user) {
         return new ArrayList<>(todoRepository.findByUser(user));
+    }
+
+    @Transactional
+    public void deleteUserTodos(User user) {
+        todoRepository.deleteByUser(user);
+        todoRepository.flush();
     }
 
     public int getNumberOfDoneTodos(User user) {
