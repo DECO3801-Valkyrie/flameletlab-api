@@ -1,8 +1,8 @@
 CREATE TABLE IF NOT EXISTS `group_chat` (
     `id` bigint(20) NOT NULL AUTO_INCREMENT,
     `name` varchar(22) NOT NULL,
-    `occupation_type_id` int NOT NULL,
-    `total_users` int NOT NULL,
+    `occupation_type_id` bigint(20) NOT NULL,
+    `total_users` bigint(20) NOT NULL,
     `created` datetime NOT NULL,
     PRIMARY KEY (`id`),
     INDEX `fk_group_chat_occupation_type1_idx` (`occupation_type_id` ASC) VISIBLE,
@@ -15,8 +15,8 @@ ENGINE = InnoDB;
 
 CREATE TABLE IF NOT EXISTS `anonymous_group_chat_user` (
     `id` bigint(20) NOT NULL AUTO_INCREMENT,
-    `user_id` int NOT NULL,
-    `group_chat_id` int NOT NULL,
+    `user_id` bigint(20) NOT NULL,
+    `group_chat_id` bigint(20) NOT NULL,
     `anonymous_name` varchar(255),
     `anonymous_image` varchar(255),
     PRIMARY KEY (`id`),
@@ -53,9 +53,16 @@ CREATE TABLE IF NOT EXISTS `group_chat_message` (
 )
 ENGINE = InnoDB;
 
+CREATE TABLE IF NOT EXISTS `chat_tag` (
+    `id` bigint(20) NOT NULL,
+    `name` varchar(255) NOT NULL UNIQUE,
+    PRIMARY KEY (`id`)
+)
+    ENGINE = InnoDB;
+
 CREATE TABLE IF NOT EXISTS `group_chat_tag` (
-    `group_chat_id` int NOT NULL,
-    `chat_tag_id` int NOT NULL,
+    `group_chat_id` bigint(20) NOT NULL,
+    `chat_tag_id` bigint(20) NOT NULL,
     INDEX `fk_group_chat_tag_group_chat1_idx` (`group_chat_id` ASC) VISIBLE,
     INDEX `fk_group_chat_tag_chat_tag1_idx` (`chat_tag_id` ASC) VISIBLE,
     CONSTRAINT `fk_group_chat_tag_group_chat1`
@@ -66,12 +73,5 @@ CREATE TABLE IF NOT EXISTS `group_chat_tag` (
         FOREIGN KEY (`chat_tag_id`) REFERENCES `chat_tag` (`id`)
                                             ON DELETE NO ACTION
                                             ON UPDATE NO ACTION
-)
-ENGINE = InnoDB;
-
-CREATE TABLE IF NOT EXISTS `chat_tag` (
-    `id` bigint(20) NOT NULL,
-    `name` varchar(255) NOT NULL UNIQUE,
-    PRIMARY KEY (`id`)
 )
 ENGINE = InnoDB;
