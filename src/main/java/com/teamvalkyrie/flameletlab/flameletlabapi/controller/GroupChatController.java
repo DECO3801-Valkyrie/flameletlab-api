@@ -6,10 +6,7 @@ import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.CreateGroupReques
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.mapper.ChatGroupMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.net.URI;
@@ -35,5 +32,17 @@ public class GroupChatController {
         var newGroup = chatService.createGroup(groupRequest);
        return ResponseEntity.created(URI.create("/api/group-chat/" + newGroup.getId()))
                .body(chatGroupMapper.chatGroupToCreateGroupResponse(newGroup));
+    }
+
+    /**
+     * {@code POST /group-chat/:groupId/join} : current user join a chat
+     *
+     * @param groupId the group chat id to join
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)}
+     */
+    @PostMapping("/group-chat/{groupId}/join")
+    public ResponseEntity<?> join(@PathVariable Long groupId) {
+        chatService.joinGroup(groupId);
+        return ResponseEntity.ok().body("");
     }
 }

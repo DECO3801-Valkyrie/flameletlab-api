@@ -1,6 +1,8 @@
 package com.teamvalkyrie.flameletlab.flameletlabapi.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.Hibernate;
 
@@ -11,6 +13,8 @@ import java.util.Objects;
 @Table
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class AnonymousGroupChatUser {
 
     @Id
