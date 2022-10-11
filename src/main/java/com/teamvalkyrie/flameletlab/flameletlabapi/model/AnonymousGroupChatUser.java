@@ -23,7 +23,7 @@ public class AnonymousGroupChatUser {
 
     @ManyToOne
     @JoinColumn(name = "group_chat_id", referencedColumnName = "id")
-    private ChatGroup group;
+    private GroupChat group;
 
     @Column
     private String anonymousName;

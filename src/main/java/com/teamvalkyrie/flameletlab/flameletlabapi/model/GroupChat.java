@@ -1,7 +1,6 @@
 package com.teamvalkyrie.flameletlab.flameletlabapi.model;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.Hibernate;
 
@@ -15,7 +14,7 @@ import java.util.Set;
 @Table
 @Getter
 @Setter
-public class ChatGroup {
+public class GroupChat {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,7 +24,7 @@ public class ChatGroup {
     private String name;
 
     @Column
-    private Long totalUsers;
+    private Integer totalUsers;
 
     @OneToOne
     @JoinColumn(name = "occupation_type_id", referencedColumnName =  "id")
@@ -34,7 +33,7 @@ public class ChatGroup {
     @Column
     private ZonedDateTime created;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "group_chat_tag",
             joinColumns = @JoinColumn(
@@ -50,8 +49,8 @@ public class ChatGroup {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        ChatGroup chatGroup = (ChatGroup) o;
-        return id != null && Objects.equals(id, chatGroup.id);
+        GroupChat groupChat = (GroupChat) o;
+        return id != null && Objects.equals(id, groupChat.id);
     }
 
     @Override

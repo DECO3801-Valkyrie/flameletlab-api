@@ -29,7 +29,7 @@ public class GroupChatMessage {
 
     @OneToOne
     @JoinColumn(name = "group_chat_id", referencedColumnName = "id")
-    private ChatGroup chatGroup;
+    private GroupChat groupChat;
 
     @Column
     private ZonedDateTime created;
