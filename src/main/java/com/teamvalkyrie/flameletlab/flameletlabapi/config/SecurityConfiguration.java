@@ -61,7 +61,7 @@ public class SecurityConfiguration {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers(HttpMethod.OPTIONS, "/**", "/white-noise/**")
+                .antMatchers(HttpMethod.OPTIONS, "/**", "/white-noise/**", "/animals/**")
                 .permitAll()
                 .antMatchers("/api/register").permitAll()
                 .antMatchers("/api/occupation-types").permitAll()
