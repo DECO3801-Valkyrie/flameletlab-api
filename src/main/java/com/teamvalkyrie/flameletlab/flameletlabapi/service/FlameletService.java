@@ -299,6 +299,6 @@ public class FlameletService {
         flamelet.setUser(user);
         flamelet.setMood(Mood.NEUTRAL.name());
 
-        return flameletRepository.save(flamelet);
+        return flameletRepository.saveAndFlush(flamelet);
     }
 }

@@ -81,4 +81,12 @@ public class TodoRestController {
 
         return ResponseEntity.ok(responses);
     }
+
+    @DeleteMapping("/todos")
+    public ResponseEntity<Void> deleteUserTodos() {
+        User current = userService.getCurrentLoggedInUser();
+        userTodoService.deleteUserTodos(current);
+
+        return ResponseEntity.ok().build();
+    }
 }

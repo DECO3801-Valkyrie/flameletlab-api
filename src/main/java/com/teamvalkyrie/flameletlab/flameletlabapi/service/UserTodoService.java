@@ -44,7 +44,7 @@ public class UserTodoService {
         newTodo.setEstimatedTime(estimatedTime);
         newTodo.setEstimatedStart(estimatedStart);
 
-        return todoRepository.save(newTodo);
+        return todoRepository.saveAndFlush(newTodo);
     }
 
     /**
@@ -101,7 +101,7 @@ public class UserTodoService {
 
         currentTodo.setDateCompleted(completedTime);
         currentTodo.setDone(toggle);
-        return todoRepository.save(currentTodo);
+        return todoRepository.saveAndFlush(currentTodo);
     }
 
     /**
@@ -111,6 +111,7 @@ public class UserTodoService {
     @Transactional
     public void deleteTodo(long id) {
         todoRepository.deleteById(id);
+        todoRepository.flush();
     }
 
     public Todo getTodo(long id) {
@@ -123,6 +124,12 @@ public class UserTodoService {
      */
     public List<Todo> getTodoList(User user) {
         return new ArrayList<>(todoRepository.findByUser(user));
+    }
+
+    @Transactional
+    public void deleteUserTodos(User user) {
+        todoRepository.deleteByUser(user);
+        todoRepository.flush();
     }
 
     public int getNumberOfDoneTodos(User user) {

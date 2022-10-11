@@ -23,4 +23,6 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
                                             @Param("end") ZonedDateTime end);
 
     List<Todo> findByUser(User user);
+
+    void deleteByUser(User user);
 }
