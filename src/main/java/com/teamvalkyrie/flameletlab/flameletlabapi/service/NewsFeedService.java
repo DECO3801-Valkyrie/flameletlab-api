@@ -68,5 +68,4 @@ public class NewsFeedService {
 
         return new ArrayList<>(articles);
     }
-
 }
