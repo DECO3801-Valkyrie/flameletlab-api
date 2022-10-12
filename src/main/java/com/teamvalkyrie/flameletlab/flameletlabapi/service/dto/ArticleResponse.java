@@ -10,4 +10,11 @@ public class ArticleResponse {
     public String url;
 
     public String imgUrl;
+
+    public ArticleResponse(String name, List<String> tags, String url, String imgUrl) {
+        this.name = name;
+        this.tags = tags;
+        this.url = url;
+        this.imgUrl = imgUrl;
+    }
 }
