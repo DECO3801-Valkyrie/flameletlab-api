@@ -42,8 +42,11 @@ public class GroupChat {
                     name = "chat_tag_id", referencedColumnName = "id"))
     private Set<ChatTag> tags = new HashSet<>();
 
-    @OneToMany(mappedBy = "group")
+    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL)
     private Set<AnonymousGroupChatUser> anonymousUsers = new HashSet<>();
+
+    @OneToMany(mappedBy = "groupChat", cascade = CascadeType.ALL)
+    private Set<GroupChatMessage> messages = new HashSet<>();
 
     @Override
     public boolean equals(Object o) {

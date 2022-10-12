@@ -27,7 +27,7 @@ public class GroupChatMessage {
     @JoinColumn(name = "anonymous_group_chat_user_id", referencedColumnName =  "id")
     private AnonymousGroupChatUser anonymousUser;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "group_chat_id", referencedColumnName = "id")
     private GroupChat groupChat;
 
