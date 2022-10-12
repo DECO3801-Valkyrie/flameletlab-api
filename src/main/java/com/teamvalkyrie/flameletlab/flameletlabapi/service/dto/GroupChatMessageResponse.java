@@ -17,4 +17,5 @@ public class GroupChatMessageResponse {
     private String anonymousImage;
     private String message;
     private ZonedDateTime sent;
+    private Boolean byYou;
 }

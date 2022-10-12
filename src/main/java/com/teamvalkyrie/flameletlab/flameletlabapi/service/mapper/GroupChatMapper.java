@@ -28,17 +28,18 @@ public class GroupChatMapper {
         GroupChatResponse groupChatResponse = new GroupChatResponse();
         groupChatResponse.setId(groupChat.getId());
         groupChatResponse.setName(groupChat.getName());
+        groupChatResponse.setOccupationType(groupChat.getOccupationType().getName());
         groupChatResponse.setTags(groupChat.getTags().stream().map(ChatTag::getName).toList());
         groupChatResponse.setTotalUsers(groupChat.getTotalUsers());
 
         return  groupChatResponse;
     }
 
-    public List<GroupChatMessageResponse> groupChatMessagesToGroupChatMessagesResponse(Set<GroupChatMessage> messages) {
+    public List<GroupChatMessageResponse> groupChatMessagesToGroupChatMessagesResponse(Set<GroupChatMessage> messages, Long userId) {
        return  messages.stream().map(m -> new GroupChatMessageResponse(m.getId(),
-                m.getAnonymousUser().getAnonymousName(),
-                m.getAnonymousUser().getAnonymousImage(),
-                m.getMessage(),
-                m.getCreated())).toList();
+               m.getAnonymousUser().getAnonymousName(),
+               m.getAnonymousUser().getAnonymousImage(),
+               m.getMessage(),
+               m.getCreated(), m.getAnonymousUser().getUser().getId().equals(userId))).toList();
     }
 }

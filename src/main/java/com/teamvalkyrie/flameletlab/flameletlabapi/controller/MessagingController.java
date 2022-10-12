@@ -1,6 +1,7 @@
 package com.teamvalkyrie.flameletlab.flameletlabapi.controller;
 
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.ChatService;
+import com.teamvalkyrie.flameletlab.flameletlabapi.service.UserService;
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.AnonymousUserMessageResponse;
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.GroupChatMessageResponse;
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.GroupChatMessagesResponse;
@@ -21,6 +22,8 @@ public class MessagingController {
 
     private final ChatService chatService;
 
+    private final UserService userService;
+
     private final GroupChatMapper groupChatMapper;
 
     @MessageMapping("/message/{groupId}")
@@ -31,7 +34,8 @@ public class MessagingController {
                 newMessage.getAnonymousUser().getAnonymousName(),
                 newMessage.getAnonymousUser().getAnonymousImage(),
                 newMessage.getMessage(),
-                newMessage.getCreated());
+                newMessage.getCreated(),
+                true);
 
     }
 

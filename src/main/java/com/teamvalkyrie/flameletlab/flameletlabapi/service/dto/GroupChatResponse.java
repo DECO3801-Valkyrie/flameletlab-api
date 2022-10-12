@@ -10,6 +10,7 @@ import java.util.List;
 public class GroupChatResponse {
     private Long id;
     private String name;
+    private String occupationType;
     private List<String> tags;
     private Integer totalUsers;
 }

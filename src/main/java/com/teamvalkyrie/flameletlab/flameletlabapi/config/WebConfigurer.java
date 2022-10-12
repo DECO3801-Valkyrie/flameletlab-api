@@ -43,11 +43,13 @@ public class WebConfigurer implements ServletContextInitializer, WebServerFactor
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
-        config.applyPermitDefaultValues();
-        if (!CollectionUtils.isEmpty(config.getAllowedOrigins()) || !CollectionUtils.isEmpty(config.getAllowedOriginPatterns())) {
-            log.debug("Registering CORS filter");
-            source.registerCorsConfiguration("/api/**", config);
-        }
+       // config.applyPermitDefaultValues();
+        log.debug("Registering CORS filter");
+        config.setAllowedOriginPatterns(List.of("http://localhost:8100"));
+        config.setAllowedMethods(List.of("GET","POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+        source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
     }
 

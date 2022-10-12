@@ -111,7 +111,7 @@ public class ChatService {
              * This can be done a in a future release
              */
             for(Animal animal : Animals.getAnimals()) {
-               String newAnonymousName = "Anonymous " + animal;
+               String newAnonymousName = "Anonymous " + animal.getName();
                if (users.stream().map(AnonymousGroupChatUser::getAnonymousName)
                        .noneMatch(n -> n.equalsIgnoreCase(newAnonymousName))) {
                    return new AnonymousGroupChatUser(null, userService.getCurrentLoggedInUser(),
@@ -176,26 +176,29 @@ public class ChatService {
      * @param message the message to save
      */
      @Transactional(rollbackFor = GroupChatException.class)
-     public GroupChatMessage saveMessageForGroup(Long groupId, WebSocketMessage message) {
-         var currentUser = userService.getCurrentLoggedInUser();
-         var anonymousUser = this
-                 .getAnonymousUserNameByUserIdAndGroupId(currentUser.getId(), groupId);
-         if (anonymousUser == null) {
-            throw new GroupChatException("Doesn't seem like you are joined to this group");
-         }
+     public GroupChatMessage saveMessageForGroup(Long groupId,WebSocketMessage message) {
+         var currentUser = userService.findOneById(message.getUserId());
+        if (currentUser.isPresent()) {
+            var anonymousUser= this.getAnonymousUserNameByUserIdAndGroupId(currentUser.get().getId(), groupId);
+            if (anonymousUser == null) {
+                throw new GroupChatException("Doesn't seem like you are joined to this group");
+            }
 
-         var chatGroupOptional = groupChatRepository.findOneByIdWithMessages(groupId);
-         GroupChatMessage newMessage = new GroupChatMessage();
-         chatGroupOptional.ifPresent(gc -> {
-             newMessage.setMessage(message.getMessage());
-             newMessage.setCreated(ZonedDateTime.now());
-             newMessage.setGroupChat(gc);
-             newMessage.setAnonymousUser(anonymousUser);
-             gc.getMessages().add(newMessage);
-             this.groupChatRepository.save(gc);
-         });
+            var chatGroupOptional = groupChatRepository.findOneByIdWithMessages(groupId);
+            GroupChatMessage newMessage = new GroupChatMessage();
+            chatGroupOptional.ifPresent(gc -> {
+                newMessage.setMessage(message.getMessage());
+                newMessage.setCreated(ZonedDateTime.now());
+                newMessage.setGroupChat(gc);
+                newMessage.setAnonymousUser(anonymousUser);
+                gc.getMessages().add(newMessage);
+                this.groupChatRepository.save(gc);
+            });
 
-         return newMessage;
+            return newMessage;
+
+        }
+        throw new GroupChatException("Unable to save message");
      }
 
 

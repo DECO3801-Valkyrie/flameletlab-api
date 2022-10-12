@@ -10,5 +10,6 @@ import java.time.ZonedDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class WebSocketMessage {
+    private Long userId;
     private String message;
 }
