@@ -12,7 +12,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.*;
 import java.lang.Math;
-import java.util.function.Consumer;
 
 @Service
 @Transactional(readOnly = true)
@@ -29,7 +28,9 @@ public class NewsFeedService {
         return new ArrayList<>(Arrays.asList(tags));
     }
 
-    private void performSearch(String searchTerm, List<String> tags, List<Article> articles) {
+    private List<Article> performSearch(String searchTerm, List<String> tags) {
+        List<Article> articles = null;
+
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(searchEndpoint)
                 .queryParam("apiKey", apiKey)
                 .queryParam("q", searchTerm);
@@ -38,13 +39,16 @@ public class NewsFeedService {
 
         if (result != null) {
             articles = result.getArticles();
+            articles.forEach(x -> x.setTags(tags));
         } else {
             System.out.println("fuck me");
         }
+
+        return articles;
     }
 
-    public Map<Article, List<String>> getArticles(User user) {
-        Map<Article, List<String>> articlesTagsPairs = new HashMap<>();
+    public List<Article> getArticles(User user) {
+        List<Article> articles = new ArrayList<>();
         Map<String, String> tagPairs = new HashMap<>();
         OccupationType occType = user.getOccupationType();
 
@@ -64,7 +68,7 @@ public class NewsFeedService {
         for (String tag : tags) {
             String searchTerm = occType.getName() + " " + tag;
             List<String> tags = Collections.singletonList(tag);
-            performSearch(searchTerm, tags, articlesTagsPairs);
+            articles.addAll(performSearch(searchTerm, tags));
         }
 
         for (Map.Entry<String, String> pair : tagPairs.entrySet()) {
@@ -74,10 +78,11 @@ public class NewsFeedService {
 
             String searchTerm = occType.getName() + " " + tags.get(0) + " " + tags.get(1);
 
-            performSearch(searchTerm, tags, articlesTagsPairs);
+            articles.addAll(performSearch(searchTerm, tags));
         }
 
         System.out.println("bye bye");
-        return articlesTagsPairs;
+        Collections.shuffle(articles);
+        return articles;
     }
 }

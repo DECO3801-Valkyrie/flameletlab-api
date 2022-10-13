@@ -3,8 +3,7 @@ package com.teamvalkyrie.flameletlab.flameletlabapi.controller;
 import com.teamvalkyrie.flameletlab.flameletlabapi.model.User;
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.NewsFeedService;
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.UserService;
-import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.ArticleResponse;
-import com.teamvalkyrie.flameletlab.flameletlabapi.service.mapper.NewsFeedMapper;
+import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.Article;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,12 +18,11 @@ import java.util.List;
 public class NewsFeedRestController {
     private final NewsFeedService newsFeedService;
     private final UserService userService;
-    private final NewsFeedMapper newsFeedMapper;
 
     @GetMapping("/newsfeed")
-    public ResponseEntity<List<ArticleResponse>> getNewsFeed() {
+    public ResponseEntity<List<Article>> getNewsFeed() {
         User curr = userService.getCurrentLoggedInUser();
-        List<ArticleResponse> articles = newsFeedMapper.newsFeedToArticleResponses(newsFeedService.getArticles(curr));
+        List<Article> articles = newsFeedService.getArticles(curr);
 
         return ResponseEntity.ok(articles);
     }
