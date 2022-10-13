@@ -17,11 +17,9 @@ import java.util.List;
 @RequestMapping("/api")
 @RequiredArgsConstructor
 public class NewsFeedRestController {
-    private NewsFeedService newsFeedService;
-
-    private UserService userService;
-
-    private NewsFeedMapper newsFeedMapper;
+    private final NewsFeedService newsFeedService;
+    private final UserService userService;
+    private final NewsFeedMapper newsFeedMapper;
 
     @GetMapping("/newsfeed")
     public ResponseEntity<List<ArticleResponse>> getNewsFeed() {

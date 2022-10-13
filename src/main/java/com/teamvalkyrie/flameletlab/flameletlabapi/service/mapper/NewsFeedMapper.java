@@ -2,11 +2,13 @@ package com.teamvalkyrie.flameletlab.flameletlabapi.service.mapper;
 
 import com.kwabenaberko.newsapilib.models.Article;
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.ArticleResponse;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@Service
 public class NewsFeedMapper {
     public List<ArticleResponse> newsFeedToArticleResponses(Map<Article, List<String>> articlesTagsPairs) {
         List<ArticleResponse> responses = new ArrayList<>();

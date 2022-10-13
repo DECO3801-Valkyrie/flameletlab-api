@@ -1,20 +1,26 @@
 package com.teamvalkyrie.flameletlab.flameletlabapi.service;
 
-import com.kwabenaberko.newsapilib.NewsApiClient;
-import com.kwabenaberko.newsapilib.models.Article;
-import com.kwabenaberko.newsapilib.models.request.EverythingRequest;
-import com.kwabenaberko.newsapilib.models.response.ArticleResponse;
 import com.teamvalkyrie.flameletlab.flameletlabapi.model.OccupationType;
 import com.teamvalkyrie.flameletlab.flameletlabapi.model.User;
+import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.Article;
+import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.ArticlesResult;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.*;
 import java.lang.Math;
 import java.util.function.Consumer;
 
+@Service
+@Transactional(readOnly = true)
+@AllArgsConstructor
 public class NewsFeedService {
     private final String apiKey = "e7cbd37331c143efb71160c7cf2437cb";
-
-    private final NewsApiClient newsFeed = new NewsApiClient(apiKey);
+    private final String searchEndpoint = "https://newsapi.org/v2/everything";
+    private final RestTemplate restTemplate;
     private final List<String> tags = initTags();
 
     private List<String> initTags() {
@@ -23,42 +29,24 @@ public class NewsFeedService {
         return new ArrayList<>(Arrays.asList(tags));
     }
 
-    private void performSearch(String searchTerm, List<String> tags, Map<Article, List<String>> articleTagsPairs) {
-        NewsApiClient.ArticlesResponseCallback callback = new NewsApiClient.ArticlesResponseCallback() {
-            @Override
-            public void onSuccess(ArticleResponse articleResponse) {
-                Consumer<Article> consumer = x -> { articleTagsPairs.put(x, tags); };
-                articleResponse.getArticles().forEach(consumer);
-            }
+    private void performSearch(String searchTerm, List<String> tags, List<Article> articles) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(searchEndpoint)
+                .queryParam("apiKey", apiKey)
+                .queryParam("q", searchTerm);
 
-            @Override
-            public void onFailure(Throwable throwable) {
-                return;
-            }
-        };
+        ArticlesResult result = restTemplate.getForObject(builder.build().toUri(), ArticlesResult.class);
 
-        EverythingRequest request = new EverythingRequest.Builder().q(searchTerm).build();
-        newsFeed.getEverything(request, callback);
+        if (result != null) {
+            articles = result.getArticles();
+        } else {
+            System.out.println("fuck me");
+        }
     }
 
     public Map<Article, List<String>> getArticles(User user) {
-        Set<Article> articles = new HashSet<>();
         Map<Article, List<String>> articlesTagsPairs = new HashMap<>();
         Map<String, String> tagPairs = new HashMap<>();
         OccupationType occType = user.getOccupationType();
-
-        NewsApiClient.ArticlesResponseCallback callback = new NewsApiClient.ArticlesResponseCallback() {
-            @Override
-            public void onSuccess(ArticleResponse articleResponse) {
-                articles.addAll(articleResponse.getArticles());
-            }
-
-            @Override
-            public void onFailure(Throwable throwable) {
-                return;
-            }
-        };
-
 
         int numTags = tags.size();
         int[] tagPair = {-1, -1};
@@ -70,6 +58,8 @@ public class NewsFeedService {
 
             tagPairs.put(tags.get(tagPair[0]), tags.get(tagPair[1]));
         }
+
+        System.out.println(tagPairs);
 
         for (String tag : tags) {
             String searchTerm = occType.getName() + " " + tag;
@@ -87,6 +77,7 @@ public class NewsFeedService {
             performSearch(searchTerm, tags, articlesTagsPairs);
         }
 
+        System.out.println("bye bye");
         return articlesTagsPairs;
     }
 }
