@@ -13,9 +13,9 @@ import java.time.ZonedDateTime;
 @NoArgsConstructor
 public class GroupChatMessageResponse {
     private Long id;
+    private Long senderId;
     private String anonymousUserName;
     private String anonymousImage;
     private String message;
     private ZonedDateTime sent;
-    private Boolean byYou;
 }

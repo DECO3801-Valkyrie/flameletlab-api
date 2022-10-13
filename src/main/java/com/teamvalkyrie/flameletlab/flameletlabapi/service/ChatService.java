@@ -3,10 +3,7 @@ package com.teamvalkyrie.flameletlab.flameletlabapi.service;
 import com.teamvalkyrie.flameletlab.flameletlabapi.constant.Animals;
 import com.teamvalkyrie.flameletlab.flameletlabapi.model.*;
 import com.teamvalkyrie.flameletlab.flameletlabapi.model.misc.Animal;
-import com.teamvalkyrie.flameletlab.flameletlabapi.repository.AnonymousGroupChatUserRepository;
-import com.teamvalkyrie.flameletlab.flameletlabapi.repository.GroupChatRepository;
-import com.teamvalkyrie.flameletlab.flameletlabapi.repository.ChatTagRepository;
-import com.teamvalkyrie.flameletlab.flameletlabapi.repository.OccupationTypeRepository;
+import com.teamvalkyrie.flameletlab.flameletlabapi.repository.*;
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.CreateGroupRequest;
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.WebSocketMessage;
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.exception.GroupChatException;
@@ -20,6 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Transactional(readOnly = true)
 @Service
@@ -34,6 +32,8 @@ public class ChatService {
     private final UserService userService;
 
     private final AnonymousGroupChatUserRepository anonymousGroupChatUserRepository;
+
+    private final GroupChatMessageRepository groupChatMessageRepository;
 
     /**
      * Gets a single group chat with its messages
@@ -186,16 +186,16 @@ public class ChatService {
 
             var chatGroupOptional = groupChatRepository.findOneByIdWithMessages(groupId);
             GroupChatMessage newMessage = new GroupChatMessage();
+            AtomicReference<GroupChatMessage> savedMesssage = new AtomicReference<>(null);
             chatGroupOptional.ifPresent(gc -> {
                 newMessage.setMessage(message.getMessage());
                 newMessage.setCreated(ZonedDateTime.now());
                 newMessage.setGroupChat(gc);
                 newMessage.setAnonymousUser(anonymousUser);
-                gc.getMessages().add(newMessage);
-                this.groupChatRepository.save(gc);
+               savedMesssage.set(this.groupChatMessageRepository.saveAndFlush(newMessage));
             });
 
-            return newMessage;
+            return savedMesssage.get();
 
         }
         throw new GroupChatException("Unable to save message");

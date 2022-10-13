@@ -37,9 +37,10 @@ public class GroupChatMapper {
 
     public List<GroupChatMessageResponse> groupChatMessagesToGroupChatMessagesResponse(Set<GroupChatMessage> messages, Long userId) {
        return  messages.stream().map(m -> new GroupChatMessageResponse(m.getId(),
+               m.getAnonymousUser().getUser().getId(),
                m.getAnonymousUser().getAnonymousName(),
                m.getAnonymousUser().getAnonymousImage(),
                m.getMessage(),
-               m.getCreated(), m.getAnonymousUser().getUser().getId().equals(userId))).toList();
+               m.getCreated())).toList();
     }
 }

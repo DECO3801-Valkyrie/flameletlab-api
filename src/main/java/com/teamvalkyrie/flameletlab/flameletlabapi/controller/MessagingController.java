@@ -31,11 +31,11 @@ public class MessagingController {
     public GroupChatMessageResponse message(@DestinationVariable Long groupId, WebSocketMessage message) {
         var newMessage = chatService.saveMessageForGroup(groupId, message);
         return new GroupChatMessageResponse(newMessage.getId(),
+                message.getUserId(),
                 newMessage.getAnonymousUser().getAnonymousName(),
                 newMessage.getAnonymousUser().getAnonymousImage(),
                 newMessage.getMessage(),
-                newMessage.getCreated(),
-                true);
+                newMessage.getCreated());
 
     }
 
