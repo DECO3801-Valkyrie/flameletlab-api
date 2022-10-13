@@ -45,7 +45,7 @@ public class WebConfigurer implements ServletContextInitializer, WebServerFactor
         CorsConfiguration config = new CorsConfiguration();
        // config.applyPermitDefaultValues();
         log.debug("Registering CORS filter");
-        config.setAllowedOriginPatterns(List.of("http://localhost:8100"));
+        config.setAllowedOriginPatterns(List.of("http://localhost:8100", "http://10.89.175.108:8100"));
         config.setAllowedMethods(List.of("GET","POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

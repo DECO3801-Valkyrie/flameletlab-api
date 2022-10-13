@@ -13,10 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Transactional(readOnly = true)
@@ -97,6 +94,16 @@ public class ChatService {
      }
 
 
+    /**
+     * Retrieves a random animal
+     * @return the random animal
+     */
+     private Animal getRandomAnimal() {
+         Random rand = new Random();
+         int randomAnimalIndex = rand.nextInt(Animals.getAnimals().size());
+         return Animals.getAnimals().get(randomAnimalIndex);
+     }
+
      public AnonymousGroupChatUser getNewAnonymousUserForGroup(Long groupChatId) {
 
         var groupChatOptional = groupChatRepository.findOneByIdWithUsers(groupChatId);
@@ -110,17 +117,23 @@ public class ChatService {
              *
              * This can be done a in a future release
              */
-            for(Animal animal : Animals.getAnimals()) {
-               String newAnonymousName = "Anonymous " + animal.getName();
-               if (users.stream().map(AnonymousGroupChatUser::getAnonymousName)
-                       .noneMatch(n -> n.equalsIgnoreCase(newAnonymousName))) {
-                   return new AnonymousGroupChatUser(null, userService.getCurrentLoggedInUser(),
-                           groupChatOptional.get(), newAnonymousName, animal.getImage());
-               }
+             AnonymousGroupChatUser newUser = null;
+             int tried = 0;
+             while(newUser == null && tried < Animals.getAnimals().size()) {
+                 Animal animal = getRandomAnimal();
+                 String newAnonymousName = "Anonymous " + animal.getName();
+                 if (users.stream().map(AnonymousGroupChatUser::getAnonymousName)
+                         .noneMatch(n -> n.equalsIgnoreCase(newAnonymousName))) {
+                     newUser = new AnonymousGroupChatUser(null, userService.getCurrentLoggedInUser(),
+                             groupChatOptional.get(), newAnonymousName, animal.getImage());
+                 }
+                 tried++;
            }
+
+            return newUser;
         }
 
-        return null;
+      return null;
      }
 
     /**
