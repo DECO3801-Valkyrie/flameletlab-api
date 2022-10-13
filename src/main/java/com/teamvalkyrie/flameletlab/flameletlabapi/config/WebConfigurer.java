@@ -52,7 +52,7 @@ public class WebConfigurer implements ServletContextInitializer, WebServerFactor
     }
 
     /**
-     * Customize the Servlet engine: Mime types, the document root, the cache.
+     * Customize the Servlet engine: Mime types, the document root, the cache.json.
      */
     @Override
     public void customize(WebServerFactory server) {
