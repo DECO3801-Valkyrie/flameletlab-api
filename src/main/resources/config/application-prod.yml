@@ -7,6 +7,6 @@ spring:
   flyway:
     enabled: true
   datasource:
-    url: jdbc:mysql://flameletlab:3306/buyjunub?useTimezone=true&serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false
+    url: jdbc:mysql://localhost:3306/flameletlab?useTimezone=true&serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false
     username: root
-    password: topSecretPass
+    password: flameletlab
