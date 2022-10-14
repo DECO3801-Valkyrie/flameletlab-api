@@ -66,6 +66,7 @@ public class SecurityConfiguration {
                 .antMatchers("/api/register").permitAll()
                 .antMatchers("/api/occupation-types").permitAll()
                 .antMatchers("/api/authenticate").permitAll()
+                .antMatchers("/flameletlab-websocket/**").permitAll()
                 .antMatchers("/api/**").authenticated()
                 .and()
                 .httpBasic()

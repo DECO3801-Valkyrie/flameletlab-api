@@ -68,7 +68,8 @@ public class GroupChatController {
         return groupChat.map(gc -> {
             GroupChatMessagesResponse response = new GroupChatMessagesResponse();
             response.setGroupChat(groupChatMapper.groupChatToGroupChatResponse(gc));
-            response.setMessages(groupChatMapper.groupChatMessagesToGroupChatMessagesResponse(gc.getMessages()));
+            response.setMessages(groupChatMapper.groupChatMessagesToGroupChatMessagesResponse(gc.getMessages(),
+                    userService.getCurrentLoggedInUser().getId()));
             return ResponseEntity.ok().body(response);
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }

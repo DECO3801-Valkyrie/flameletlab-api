@@ -3,10 +3,7 @@ package com.teamvalkyrie.flameletlab.flameletlabapi.service;
 import com.teamvalkyrie.flameletlab.flameletlabapi.constant.Animals;
 import com.teamvalkyrie.flameletlab.flameletlabapi.model.*;
 import com.teamvalkyrie.flameletlab.flameletlabapi.model.misc.Animal;
-import com.teamvalkyrie.flameletlab.flameletlabapi.repository.AnonymousGroupChatUserRepository;
-import com.teamvalkyrie.flameletlab.flameletlabapi.repository.GroupChatRepository;
-import com.teamvalkyrie.flameletlab.flameletlabapi.repository.ChatTagRepository;
-import com.teamvalkyrie.flameletlab.flameletlabapi.repository.OccupationTypeRepository;
+import com.teamvalkyrie.flameletlab.flameletlabapi.repository.*;
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.CreateGroupRequest;
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.WebSocketMessage;
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.exception.GroupChatException;
@@ -16,10 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Transactional(readOnly = true)
 @Service
@@ -34,6 +29,8 @@ public class ChatService {
     private final UserService userService;
 
     private final AnonymousGroupChatUserRepository anonymousGroupChatUserRepository;
+
+    private final GroupChatMessageRepository groupChatMessageRepository;
 
     /**
      * Gets a single group chat with its messages
@@ -97,6 +94,16 @@ public class ChatService {
      }
 
 
+    /**
+     * Retrieves a random animal
+     * @return the random animal
+     */
+     private Animal getRandomAnimal() {
+         Random rand = new Random();
+         int randomAnimalIndex = rand.nextInt(Animals.getAnimals().size());
+         return Animals.getAnimals().get(randomAnimalIndex);
+     }
+
      public AnonymousGroupChatUser getNewAnonymousUserForGroup(Long groupChatId) {
 
         var groupChatOptional = groupChatRepository.findOneByIdWithUsers(groupChatId);
@@ -110,17 +117,23 @@ public class ChatService {
              *
              * This can be done a in a future release
              */
-            for(Animal animal : Animals.getAnimals()) {
-               String newAnonymousName = "Anonymous " + animal;
-               if (users.stream().map(AnonymousGroupChatUser::getAnonymousName)
-                       .noneMatch(n -> n.equalsIgnoreCase(newAnonymousName))) {
-                   return new AnonymousGroupChatUser(null, userService.getCurrentLoggedInUser(),
-                           groupChatOptional.get(), newAnonymousName, animal.getImage());
-               }
+             AnonymousGroupChatUser newUser = null;
+             int tried = 0;
+             while(newUser == null && tried < Animals.getAnimals().size()) {
+                 Animal animal = getRandomAnimal();
+                 String newAnonymousName = "Anonymous " + animal.getName();
+                 if (users.stream().map(AnonymousGroupChatUser::getAnonymousName)
+                         .noneMatch(n -> n.equalsIgnoreCase(newAnonymousName))) {
+                     newUser = new AnonymousGroupChatUser(null, userService.getCurrentLoggedInUser(),
+                             groupChatOptional.get(), newAnonymousName, animal.getImage());
+                 }
+                 tried++;
            }
+
+            return newUser;
         }
 
-        return null;
+      return null;
      }
 
     /**
@@ -176,26 +189,29 @@ public class ChatService {
      * @param message the message to save
      */
      @Transactional(rollbackFor = GroupChatException.class)
-     public GroupChatMessage saveMessageForGroup(Long groupId, WebSocketMessage message) {
-         var currentUser = userService.getCurrentLoggedInUser();
-         var anonymousUser = this
-                 .getAnonymousUserNameByUserIdAndGroupId(currentUser.getId(), groupId);
-         if (anonymousUser == null) {
-            throw new GroupChatException("Doesn't seem like you are joined to this group");
-         }
+     public GroupChatMessage saveMessageForGroup(Long groupId,WebSocketMessage message) {
+         var currentUser = userService.findOneById(message.getUserId());
+        if (currentUser.isPresent()) {
+            var anonymousUser= this.getAnonymousUserNameByUserIdAndGroupId(currentUser.get().getId(), groupId);
+            if (anonymousUser == null) {
+                throw new GroupChatException("Doesn't seem like you are joined to this group");
+            }
 
-         var chatGroupOptional = groupChatRepository.findOneByIdWithMessages(groupId);
-         GroupChatMessage newMessage = new GroupChatMessage();
-         chatGroupOptional.ifPresent(gc -> {
-             newMessage.setMessage(message.getMessage());
-             newMessage.setCreated(ZonedDateTime.now());
-             newMessage.setGroupChat(gc);
-             newMessage.setAnonymousUser(anonymousUser);
-             gc.getMessages().add(newMessage);
-             this.groupChatRepository.save(gc);
-         });
+            var chatGroupOptional = groupChatRepository.findOneByIdWithMessages(groupId);
+            GroupChatMessage newMessage = new GroupChatMessage();
+            AtomicReference<GroupChatMessage> savedMesssage = new AtomicReference<>(null);
+            chatGroupOptional.ifPresent(gc -> {
+                newMessage.setMessage(message.getMessage());
+                newMessage.setCreated(ZonedDateTime.now());
+                newMessage.setGroupChat(gc);
+                newMessage.setAnonymousUser(anonymousUser);
+               savedMesssage.set(this.groupChatMessageRepository.saveAndFlush(newMessage));
+            });
 
-         return newMessage;
+            return savedMesssage.get();
+
+        }
+        throw new GroupChatException("Unable to save message");
      }
 
 

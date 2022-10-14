@@ -18,7 +18,11 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/flameletlab-websocket").setAllowedOriginPatterns("*").withSockJS();
+        registry.addEndpoint("/flameletlab-websocket")
+                .setAllowedOriginPatterns("*")
+                .withSockJS();
     }
+
+
 
 }
