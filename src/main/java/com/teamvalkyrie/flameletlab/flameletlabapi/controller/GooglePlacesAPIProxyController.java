@@ -26,7 +26,7 @@ import org.springframework.web.client.RestTemplate;
 @RequestMapping("/places-api")
 public class GooglePlacesAPIProxyController {
 
-    private static final String GOOGLE_PLACES_API_URL = "https://maps.googleapis.com/maps/api/place/autocomplete/json?key=AIzaSyCWfP_3D3jCTlXdMvHQa8Y_r0r_iov83Yc&radius=3200000&strictbounds=true&location=-25.274398%2C133.775136&components=country:au";
+    private static final String GOOGLE_PLACES_API_URL = "https://maps.googleapis.com/maps/api/place/autocomplete/json?key=AIzaSyCWfP_3D3jCTlXdMvHQa8Y_r0r_iov83Yc&radius=3200000&strictbounds=true&location=-25.274398%%2C133.775136&components=country:au";
     private final RestTemplate restTemplate;
 
     @GetMapping("/query")
