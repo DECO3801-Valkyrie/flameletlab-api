@@ -11,6 +11,7 @@ import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.ArticlesResult;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -90,7 +91,7 @@ public class NewsFeedService {
         return new ArrayList<>(Arrays.asList(tags));
     }
 
-    private List<Article> performSearch(String searchTerm, List<String> tags) {
+    private List<Article> performSearch(String searchTerm, List<String> tags) throws RestClientException {
         List<Article> articles = null;
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(searchEndpoint)
@@ -125,6 +126,7 @@ public class NewsFeedService {
         int numTags = tags.size();
         int[] tagPair = {-1, -1};
 
+        // Randomise Tags
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 2; j++) {
                 tagPair[j] = (int) (Math.random() * (numTags - 1));
@@ -133,23 +135,26 @@ public class NewsFeedService {
             tagPairs.put(tags.get(tagPair[0]), tags.get(tagPair[1]));
         }
 
-        for (String tag : tags) {
-            String searchTerm = occType.getName() + " " + tag;
-            List<String> tags = Collections.singletonList(tag);
-            articles.addAll(performSearch(searchTerm, tags));
+        try {
+            for (String tag : tags) {
+                String searchTerm = occType.getName() + " " + tag;
+                List<String> tags = Collections.singletonList(tag);
+                articles.addAll(performSearch(searchTerm, tags));
+            }
+
+            for (Map.Entry<String, String> pair : tagPairs.entrySet()) {
+                List<String> tags = new ArrayList<>();
+                tags.add(pair.getKey());
+                tags.add(pair.getValue());
+
+                String searchTerm = occType.getName() + " " + tags.get(0) + " " + tags.get(1);
+                articles.addAll(performSearch(searchTerm, tags));
+            }
+        } catch (RestClientException e) {
+            return getCachedArticles();
         }
 
-        for (Map.Entry<String, String> pair : tagPairs.entrySet()) {
-            List<String> tags = new ArrayList<>();
-            tags.add(pair.getKey());
-            tags.add(pair.getValue());
-
-            String searchTerm = occType.getName() + " " + tags.get(0) + " " + tags.get(1);
-
-            articles.addAll(performSearch(searchTerm, tags));
-        }
-
-        if (cachedArticleRepository.count() < 100) {
+        if (getNumCachedArticles() < 100) {
             saveArticles(articles);
         }
 
