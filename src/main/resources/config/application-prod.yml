@@ -9,4 +9,4 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/flameletlab?useTimezone=true&serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false
     username: root
-    password: flameletlab
+    password: Flameletlab@2022
