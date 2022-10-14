@@ -1,7 +1,11 @@
 package com.teamvalkyrie.flameletlab.flameletlabapi.service;
 
+import com.teamvalkyrie.flameletlab.flameletlabapi.model.ArticleTag;
+import com.teamvalkyrie.flameletlab.flameletlabapi.model.CachedArticle;
 import com.teamvalkyrie.flameletlab.flameletlabapi.model.OccupationType;
 import com.teamvalkyrie.flameletlab.flameletlabapi.model.User;
+import com.teamvalkyrie.flameletlab.flameletlabapi.repository.ArticleTagRepository;
+import com.teamvalkyrie.flameletlab.flameletlabapi.repository.CachedArticleRepository;
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.Article;
 import com.teamvalkyrie.flameletlab.flameletlabapi.service.dto.ArticlesResult;
 import lombok.AllArgsConstructor;
@@ -12,6 +16,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.*;
 import java.lang.Math;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -21,6 +26,63 @@ public class NewsFeedService {
     private final String searchEndpoint = "https://newsapi.org/v2/everything";
     private final RestTemplate restTemplate;
     private final List<String> tags = initTags();
+    private final CachedArticleRepository cachedArticleRepository;
+    private final ArticleTagRepository articleTagRepository;
+
+    private Long getNumCachedArticles() {
+        return cachedArticleRepository.count();
+    }
+
+    public List<Article> getCachedArticles() {
+        List<CachedArticle> cachedArticles = cachedArticleRepository.findAll();
+        List<Article> articles = new ArrayList<>();
+
+        for (CachedArticle cachedArticle : cachedArticles) {
+            Article article = new Article();
+            article.setUrl(cachedArticle.getUrl());
+            article.setUrlToImage(cachedArticle.getUrlToImage());
+            article.setTitle(cachedArticle.getTitle());
+
+            for (ArticleTag tag : cachedArticle.getTags()) {
+                article.getTags().add(tag.getTagName());
+            }
+        }
+
+        return articles;
+    }
+
+    @Transactional
+    public CachedArticle saveArticle(Article article) {
+        CachedArticle cachedArticle = new CachedArticle();
+        cachedArticle.setTitle(article.getTitle());
+        cachedArticle.setUrl(article.getUrl());
+        cachedArticle.setUrlToImage(article.getUrlToImage());
+        cachedArticle.setTags(new HashSet<>());
+
+        for (String tag : article.getTags()) {
+            ArticleTag articleTag = new ArticleTag();
+            articleTag.setTagName(tag);
+
+            articleTagRepository.save(articleTag);
+            cachedArticle.getTags().add(articleTag);
+        }
+
+        articleTagRepository.flush();
+        System.out.println(cachedArticle.getUrlToImage());
+        System.out.flush();
+        return cachedArticleRepository.saveAndFlush(cachedArticle);
+    }
+
+    @Transactional
+    public List<CachedArticle> saveArticles(List<Article> articles) {
+        List<CachedArticle> cachedArticles = new ArrayList<>();
+
+        for (Article article : articles) {
+            cachedArticles.add(saveArticle(article));
+        }
+
+        return cachedArticles;
+    }
 
     private List<String> initTags() {
         String[] tags = {"Motivation", "Health", "Insight", "Co-workers", "Tips", "Burnout", "Productivity", "Self-care"};
@@ -40,13 +102,21 @@ public class NewsFeedService {
         if (result != null) {
             articles = result.getArticles();
             articles.forEach(x -> x.setTags(tags));
+            articles = articles.stream()
+                    .filter(
+                            x -> x.getUrl() != null
+                                    && x.getTitle() != null
+                                    && x.getUrlToImage() != null
+                                    && x.getTags() != null)
+                    .collect(Collectors.toList());
         } else {
-            System.out.println("fuck me");
+            System.out.println("something went wrong when getting articles!");
         }
 
         return articles;
     }
 
+    @Transactional
     public List<Article> getArticles(User user) {
         List<Article> articles = new ArrayList<>();
         Map<String, String> tagPairs = new HashMap<>();
@@ -62,8 +132,6 @@ public class NewsFeedService {
 
             tagPairs.put(tags.get(tagPair[0]), tags.get(tagPair[1]));
         }
-
-        System.out.println(tagPairs);
 
         for (String tag : tags) {
             String searchTerm = occType.getName() + " " + tag;
@@ -81,7 +149,10 @@ public class NewsFeedService {
             articles.addAll(performSearch(searchTerm, tags));
         }
 
-        System.out.println("bye bye");
+        if (cachedArticleRepository.count() < 100) {
+            saveArticles(articles);
+        }
+
         Collections.shuffle(articles);
         return articles;
     }

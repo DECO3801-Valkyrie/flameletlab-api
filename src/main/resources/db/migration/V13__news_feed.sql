@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS cached_article
     `id` bigint(20) NOT NULL AUTO_INCREMENT,
     `title` varchar(255) NOT NULL,
     `url` varchar(255) NOT NULL,
-    `url_to_image` varchar(255) NOT NULL,
+    `url_to_image` longtext NOT NULL,
     PRIMARY KEY (`id`)
 )
 ENGINE InnoDB;

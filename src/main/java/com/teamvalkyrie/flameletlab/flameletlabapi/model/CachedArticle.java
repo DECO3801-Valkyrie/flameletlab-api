@@ -23,6 +23,7 @@ public class CachedArticle {
     @Column
     private String url;
 
+    @Lob
     @Column
     private String urlToImage;
 
