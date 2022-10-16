@@ -19,5 +19,5 @@ public class Article {
     private String urlToImage;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private List<String> tags;
+    private List<String> tags = new ArrayList<>();
 }
