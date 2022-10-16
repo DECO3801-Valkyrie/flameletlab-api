@@ -47,6 +47,8 @@ public class NewsFeedService {
             for (ArticleTag tag : cachedArticle.getTags()) {
                 article.getTags().add(tag.getTagName());
             }
+
+	    articles.add(article);
         }
 
         return articles;
