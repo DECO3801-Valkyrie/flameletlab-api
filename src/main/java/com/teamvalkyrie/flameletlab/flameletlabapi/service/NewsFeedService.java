@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 @AllArgsConstructor
 public class NewsFeedService {
-    private final String apiKey = "e7cbd37331c143efb71160c7cf2437cb";
+    private final String apiKey = "dcc57b0fcddf85727167591438b8fd4b37583149";
     private final String searchEndpoint = "https://newsapi.org/v2/everything";
     private final RestTemplate restTemplate;
     private final List<String> tags = initTags();
