@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api")
@@ -20,9 +21,9 @@ public class NewsFeedRestController {
     private final UserService userService;
 
     @GetMapping("/newsfeed")
-    public ResponseEntity<List<Article>> getNewsFeed() {
+    public ResponseEntity<Set<Article>> getNewsFeed() {
         User curr = userService.getCurrentLoggedInUser();
-        List<Article> articles = newsFeedService.getArticles(curr);
+        Set<Article> articles = newsFeedService.getArticles(curr);
 
         return ResponseEntity.ok(articles);
     }

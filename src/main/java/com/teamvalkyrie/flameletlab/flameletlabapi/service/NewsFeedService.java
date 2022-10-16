@@ -34,9 +34,9 @@ public class NewsFeedService {
         return cachedArticleRepository.count();
     }
 
-    public List<Article> getCachedArticles() {
+    public Set<Article> getCachedArticles() {
         List<CachedArticle> cachedArticles = cachedArticleRepository.findAll();
-        List<Article> articles = new ArrayList<>();
+        Set<Article> articles = new HashSet<>();
 
         for (CachedArticle cachedArticle : cachedArticles) {
             Article article = new Article();
@@ -47,8 +47,8 @@ public class NewsFeedService {
             for (ArticleTag tag : cachedArticle.getTags()) {
                 article.getTags().add(tag.getTagName());
             }
-
-	    articles.add(article);
+            
+               articles.add(article);
         }
 
         return articles;
@@ -77,7 +77,7 @@ public class NewsFeedService {
     }
 
     @Transactional
-    public List<CachedArticle> saveArticles(List<Article> articles) {
+    public List<CachedArticle> saveArticles(Set<Article> articles) {
         List<CachedArticle> cachedArticles = new ArrayList<>();
 
         for (Article article : articles) {
@@ -120,8 +120,8 @@ public class NewsFeedService {
     }
 
     @Transactional
-    public List<Article> getArticles(User user) {
-        List<Article> articles = new ArrayList<>();
+    public Set<Article> getArticles(User user) {
+        Set<Article> articles = new HashSet<>();
         Map<String, String> tagPairs = new HashMap<>();
         OccupationType occType = user.getOccupationType();
 
@@ -160,7 +160,6 @@ public class NewsFeedService {
             saveArticles(articles);
         }
 
-        Collections.shuffle(articles);
         return articles;
     }
 }
