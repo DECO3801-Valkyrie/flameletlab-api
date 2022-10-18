@@ -126,22 +126,35 @@ public class UserTodoService {
         return new ArrayList<>(todoRepository.findByUser(user));
     }
 
+    /**
+     * Deletes all of the user's todos
+     * @param user
+     */
     @Transactional
     public void deleteUserTodos(User user) {
         todoRepository.deleteByUser(user);
         todoRepository.flush();
     }
 
+    /**
+     * Gets the number of todos a user has completed
+     * @param user
+     * @return number of done todos
+     */
     public int getNumberOfDoneTodos(User user) {
         // get the database to do it, should be faster
         // than using java to perform counts
         return (int) todoRepository.countByUserAndDone(user, true);
     }
 
-    public int getNumberOfTodos(User user) {
-        return (int) todoRepository.countByUser(user);
-    }
-
+    /**
+     * Gets the number of todos a user has completed during a specific
+     * day (time zone sensitive)
+     * @param user
+     * @param date
+     * @param timeZone used in conjunction with date
+     * @return number of done todos a user has done during a specific day
+     */
     public long getNumberDoneTodosForDay(User user, LocalDate date, ZoneId timeZone) {
         // TODO : do this for euphoric
         ZonedDateTime startOfDay = ZonedDateTime.of(date, LocalTime.MIDNIGHT, timeZone);
@@ -150,6 +163,11 @@ public class UserTodoService {
         return todoRepository.countByUserAndDateCompletedInRange(user.getId(), startOfDay, startOfNextDay);
     }
 
+    /**
+     * Checks if a user todos http request object is valid
+     * @param request http request object
+     * @return true iff valid else false
+     */
     public boolean validTodosRequest(UserTodosRequest request) {
         int namesLen = request.getNames().size();
         int durationsLen = request.getEstimatedDurations().size();
@@ -157,6 +175,9 @@ public class UserTodoService {
 
         List<Integer> lens = Arrays.asList(namesLen, durationsLen, estimatedStartsLen);
 
+        // There needs to be a one - one - one correspondence between
+        // names, durations and estimatedStarts as we don't todo objects
+        // being created with null fields
         return lens.stream().allMatch(x -> x.equals(lens.get(0)));
     }
 }

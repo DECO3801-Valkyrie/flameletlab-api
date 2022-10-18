@@ -36,33 +36,19 @@ public class FlameletService {
 
     private static final List<Mood> normalPositiveMoods = initNormalPositiveMoods();
 
+    /**
+     * Find helper function to initialise flamelet's list of positive moods
+     * @return list of positive moods
+     */
     private static List<Mood> initNormalPositiveMoods() {
         Mood[] positiveMoods = {Mood.HAPPY, Mood.EXCITED, Mood.JOYFUL, Mood.EXHILARATED};
 
         return new ArrayList<>(Arrays.asList(positiveMoods));
     }
 
-    // number of todo nodes for a threshold to be reached
-    // used in logic for calculating flamelet's mood
-    private static final int todoThreshold = 4;
-
     private final UserTodoService userTodoService;
 
     private final FlameletRepository flameletRepository;
-
-    /**
-     * Helper method to validate a string representing a mood
-     * for a mood to be valid it must be one of the following
-     * {"neutral", "happy", "excited", "joyful", "exhilarated', "euphoric"}
-     * (caps doesn't matter)
-     * if the mood is valid, the function doesn't throw anything
-     * @param mood
-     * @throws IllegalArgumentException if the mood is invalid
-     */
-    private void validateMood(String mood) throws IllegalArgumentException {
-        // trys to coerce mood to a Mood enum
-        Mood.valueOf(mood.toUpperCase());
-    }
 
     /**
      * Helper method to get a user's flamelet object
@@ -81,6 +67,12 @@ public class FlameletService {
         return optionalFlamelet.get();
     }
 
+    /**
+     * Helper method to check if a todo is overdue. A todo is overdue
+     * iff the current time is past its estimated completion time
+     * @param todo
+     * @return true iff the todo is overdue, else false
+     */
     private boolean todoOverdue(Todo todo) {
         if (todo.getDateCompleted() != null) {
             return false;
@@ -93,6 +85,13 @@ public class FlameletService {
         return currTime.isAfter(dueByTime);
     }
 
+    /**
+     * Checks if there exists a todo in the list of todos that is
+     * overdue. A todo is overdue iff the current time is past its
+     * estimated completion time
+     * @param todos
+     * @return
+     */
     private boolean anyTodoOverdue(List<Todo> todos) {
         boolean anyOverdue = false;
 
@@ -106,6 +105,13 @@ public class FlameletService {
         return anyOverdue;
     }
 
+    /**
+     * Helper method that gets the timezone sensitive date
+     * that is midnight the next day after the given datetime
+     * @param dateTime
+     * @return datetime that represents midnight the next day after
+     * the given datetime
+     */
     private ZonedDateTime getMidnightNextDay(ZonedDateTime dateTime) {
 
         return dateTime.plusDays(1).toLocalDate().
@@ -113,6 +119,11 @@ public class FlameletService {
 
     }
 
+    /**
+     * Finds the amount of time left in a day given a datetime.
+     * @param dateTime day and time of day
+     * @return the amount of time left in the specified day
+     */
     private Duration timeLeftInDay(ZonedDateTime dateTime) {
         // get the dateTime for the day tommorow, then roll it back to
         // midnight
@@ -172,9 +183,19 @@ public class FlameletService {
         addTime(sortedTimes, getMidnightNextDay(estimatedStart), estimatedDuration);
     }
 
+    /**
+     * Checks if a user has added too many todos tasks in a single/any day.
+     * The threshold is the total maximum estimated time of todo tasks a user
+     * can have in a single day. Basically if the total estimated time of the todos
+     * planned to be done in a single is exceeded, flamelet is not too happy.
+     * @param todos all the todos to be checked
+     * @param threshold daily threshold
+     * @return true if the threshold has been breached in any day, else false
+     */
     private boolean overThresholdAnyDay(List<Todo> todos, Duration threshold) {
         Map<LocalDate, List<Duration>> sortedTimes = new HashMap<>();
 
+        // Sort the todos into their days that they belong to
         for (Todo todo : todos) {
             ZonedDateTime estimatedStart = todo.getEstimatedStart();
             Duration estimatedDuration = todo.getEstimatedTime();
@@ -182,6 +203,7 @@ public class FlameletService {
             addTime(sortedTimes, estimatedStart, estimatedDuration);
         }
 
+        // For each day, check if the threshold gets breached
         for (LocalDate day : sortedTimes.keySet()) {
             Duration totalDailyTime = Duration.ZERO;
 
@@ -198,20 +220,36 @@ public class FlameletService {
         return false;
     }
 
+    /**
+     * Get a random positive mood
+     * @return a random positive mood
+     */
     private Mood randomPositiveMood() {
         int numPositiveMoods = normalPositiveMoods.size();
-
-        // TODO : if all tasks are done for day, return euphoric
 
         return normalPositiveMoods.get((int) (Math.random() % numPositiveMoods));
     }
 
+    /**
+     * Checks if flamelet is concerned. Flamelet is concerned iff any of the user's
+     * todos are overdue in a day or that the user has planned out too many
+     * todo tasks for a single day.
+     * @param user
+     * @return true iff concerned else false
+     */
     public Boolean checkIfConcerned(User user) {
         List<Todo> todos = userTodoService.getTodoList(user);
 
         return anyTodoOverdue(todos) || overThresholdAnyDay(todos, dailyTreshold);
     }
 
+    /**
+     * Helper function that maps todos to their days.
+     * @param todos to be mapped
+     * @param timeZone the timezone of the days (i.e Monday AEST).
+     *                 Required for time-date accuracy
+     * @return
+     */
     private Map<LocalDate, Set<Todo>> mapTodosToDay(Set<Todo> todos, ZoneId timeZone) {
         Map<LocalDate, Set<Todo>> tasksForEachDay = new HashMap<>();
         Set<Todo> dailyTodos;
@@ -221,18 +259,21 @@ public class FlameletService {
 
         for (Todo todo : todos) {
             if (!todo.isDone() && !todoOverdue(todo)) {
+                // todo belongs to the day where it's estimated to be done
                 ZonedDateTime estStart = todo.getEstimatedStart().withZoneSameInstant(timeZone);
 
                 estCompleteDateTime  = estStart.plus(todo.getEstimatedTime());
                 estCompleteDate = estCompleteDateTime.toLocalDate();
             } else if (todo.isDone()) {
+                // todo belongs to the day where it was done
                 estCompleteDateTime = todo.getDateCompleted().withZoneSameInstant(timeZone);
                 estCompleteDate = estCompleteDateTime.toLocalDate();
             } else {
-                // it's overdue
+                // it's overdue, todo belongs to today
                 estCompleteDate = ZonedDateTime.now(timeZone).toLocalDate();
             }
 
+            // get the day's todo set
             dailyTodos = tasksForEachDay.computeIfAbsent(estCompleteDate, k -> new HashSet<>());
             dailyTodos.add(todo);
         }
@@ -240,6 +281,13 @@ public class FlameletService {
         return tasksForEachDay;
     }
 
+    /**
+     * Checks if all tasks are done for a specific day
+     * @param todos
+     * @param day
+     * @param timeZone of the day
+     * @return true iff all are completed, else false
+     */
     private Boolean tasksDoneForDay(Set<Todo> todos, LocalDate day, ZoneId timeZone) {
         Map<LocalDate, Set<Todo>> tasksForEachDay = mapTodosToDay(todos, timeZone);
         Set<Todo> dailyTodos;
@@ -259,6 +307,18 @@ public class FlameletService {
         return true;
     }
 
+    /**
+     * Give a user and a todo, returns what flamelet thinks of it, i.e is mood.
+     * If the todo is overdue, flamelet will be concernced, else a positive mood
+     * will be returned.
+     * @param user
+     * @param todo
+     * @return concerned if the task overdue. If all tasks are done in the todo's day,
+     * flamelet will be EUPHORIC. If this task and some others are done in the todo's day,
+     * a random positive mood besides euphoric will be returned. If no tasks are done in the
+     * todo's day, flamelet will be NEUTRAL. Else flamelet's mood will stay the same as how it was
+     * before (STAYSAME is returned)
+     */
     public String moodForTodo(User user, Todo todo) {
         ZoneId commonTimeZone = ZoneId.systemDefault();
         Mood mood;
@@ -273,6 +333,8 @@ public class FlameletService {
             if (tasksDoneForDay(user.getTodos(),
                     todo.getDateCompleted().toLocalDate(),
                     commonTimeZone) && numDoneTasksForDay > 3) {
+                // all are done and a there is enough done to warrant a
+                // euphoric mood
                 mood = Mood.EUPHORIC;
             } else {
                 mood = randomPositiveMood();
