@@ -22,6 +22,8 @@ public class UserTodoResponse {
 
     private ZonedDateTime dateCompleted;
 
+    private Long durationInMinutes;
+
     private Duration estimatedTime;
 
     private ZonedDateTime estimatedStart;
