@@ -10,7 +10,11 @@ import java.util.List;
 
 @Service
 public class UserTodoMapper {
-
+    /**
+     * Converts a todo object to a todo response object.
+     * @param todo
+     * @return a todo response object
+     */
     public UserTodoResponse mapTodoToUserTodoResponse(Todo todo) {
         UserTodoResponse userTodoResponse = new UserTodoResponse();
         userTodoResponse.setName(todo.getName());
@@ -23,6 +27,12 @@ public class UserTodoMapper {
         return userTodoResponse;
     }
 
+    /**
+     * Takes a list of todos and builds a todos response object.
+     *
+     * @param todos
+     * @return a todos response object
+     */
     public UserTodosResponse mapTodoListToUserTodosResponse(List<Todo> todos) {
         UserTodosResponse response = new UserTodosResponse();
         ArrayList<UserTodoResponse> todosResponse = response.getTodos();
