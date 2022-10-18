@@ -57,6 +57,18 @@ public class GroupChatController {
     }
 
     /**
+     * {@code POST /group-chat/:groupId/leave} : current user leave a chat
+     *
+     * @param groupId the group chat id to leave
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)}
+     */
+    @PostMapping("/group-chat/{groupId}/leave")
+    public ResponseEntity<?> leave(@PathVariable Long groupId) {
+        chatService.leaveGroup(groupId);
+        return ResponseEntity.ok().body("");
+    }
+
+    /**
      * {@code GET /group-chat/:groupId/messages} : get the messages for the group specified
      *
      * @param groupId the group chat id to get messages for

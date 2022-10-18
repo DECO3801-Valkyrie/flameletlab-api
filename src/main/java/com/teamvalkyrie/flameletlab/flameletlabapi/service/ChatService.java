@@ -160,6 +160,23 @@ public class ChatService {
         anonymousGroupChatUserRepository.save(newAnonymousUser);
      }
 
+
+    /**
+     * Removes the current user from a specified group
+     * @param groupChatId the group chat id to remove from
+     */
+     @Transactional
+     public void leaveGroup(Long groupChatId) {
+         Optional<GroupChat> groupChatOptional = groupChatRepository.findById(groupChatId);
+         groupChatOptional.ifPresent(g -> {
+            var anonymousGroupChatUserOptional = anonymousGroupChatUserRepository
+                    .findOneByUserId(userService.getCurrentLoggedInUser().getId());
+             anonymousGroupChatUserOptional.ifPresent(anonymousGroupChatUserRepository::delete);
+             g.setTotalUsers(g.getTotalUsers() - 1);
+             this.groupChatRepository.save(g);
+         });
+     }
+
     /**
      * Gets all the groups based on a search criteria
      *
