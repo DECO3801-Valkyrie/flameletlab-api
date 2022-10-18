@@ -168,12 +168,14 @@ public class ChatService {
      @Transactional
      public void leaveGroup(Long groupChatId) {
          Optional<GroupChat> groupChatOptional = groupChatRepository.findById(groupChatId);
+         var anonUser = anonymousGroupChatUserRepository
+                 .findAnonymousUserByUserIdAndGroupId(userService.getCurrentLoggedInUser().getId(), groupChatId);
          groupChatOptional.ifPresent(g -> {
-            var anonymousGroupChatUserOptional = anonymousGroupChatUserRepository
-                    .findOneByUserId(userService.getCurrentLoggedInUser().getId());
-             anonymousGroupChatUserOptional.ifPresent(anonymousGroupChatUserRepository::delete);
-             g.setTotalUsers(g.getTotalUsers() - 1);
-             this.groupChatRepository.save(g);
+            if (anonUser != null) {
+                anonymousGroupChatUserRepository.delete(anonUser);
+                g.setTotalUsers(g.getTotalUsers() - 1);
+                this.groupChatRepository.save(g);
+            }
          });
      }
 
