@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 @AllArgsConstructor
 public class NewsFeedService {
+    // we use NewsAPI to get the articles
     private final String apiKey = "73e9473e99ab4939a707f7671a8c4cd6";
     private final String searchEndpoint = "https://newsapi.org/v2/everything";
     private final RestTemplate restTemplate;
@@ -30,10 +31,18 @@ public class NewsFeedService {
     private final CachedArticleRepository cachedArticleRepository;
     private final ArticleTagRepository articleTagRepository;
 
+    /**
+     * Gets the number of cached articles stored in the database
+     * @return num of cached articles
+     */
     private Long getNumCachedArticles() {
         return cachedArticleRepository.count();
     }
 
+    /**
+     * Returns the cached articles stored in the database
+     * @return the cached articles
+     */
     public Set<Article> getCachedArticles() {
         List<CachedArticle> cachedArticles = cachedArticleRepository.findAll();
         Set<Article> articles = new HashSet<>();
@@ -44,6 +53,7 @@ public class NewsFeedService {
             article.setUrlToImage(cachedArticle.getUrlToImage());
             article.setTitle(cachedArticle.getTitle());
 
+            // Get each article's tags as well
             for (ArticleTag tag : cachedArticle.getTags()) {
                 article.getTags().add(tag.getTagName());
             }
@@ -54,6 +64,11 @@ public class NewsFeedService {
         return articles;
     }
 
+    /**
+     * Save an individual article to the database
+     * @param article
+     * @return the article that was saved
+     */
     @Transactional
     public CachedArticle saveArticle(Article article) {
         CachedArticle cachedArticle = new CachedArticle();
@@ -62,6 +77,7 @@ public class NewsFeedService {
         cachedArticle.setUrlToImage(article.getUrlToImage());
         cachedArticle.setTags(new HashSet<>());
 
+        // Save the article's tags as well
         for (String tag : article.getTags()) {
             ArticleTag articleTag = new ArticleTag();
             articleTag.setTagName(tag);
@@ -71,11 +87,14 @@ public class NewsFeedService {
         }
 
         articleTagRepository.flush();
-        System.out.println(cachedArticle.getUrlToImage());
-        System.out.flush();
         return cachedArticleRepository.saveAndFlush(cachedArticle);
     }
 
+    /**
+     * Saves a set of articles to the database
+     * @param articles
+     * @return the saved articles
+     */
     @Transactional
     public List<CachedArticle> saveArticles(Set<Article> articles) {
         List<CachedArticle> cachedArticles = new ArrayList<>();
@@ -87,12 +106,23 @@ public class NewsFeedService {
         return cachedArticles;
     }
 
+    /**
+     * Helper function used to initialise the list of possible article tags
+     * @return list of article tags
+     */
     private List<String> initTags() {
         String[] tags = {"Motivation", "Health", "Insight", "Co-workers", "Tips", "Burnout", "Productivity", "Self-care"};
 
         return new ArrayList<>(Arrays.asList(tags));
     }
 
+    /**
+     * Given a search topic and tags, finds articles on the web related to them.
+     * @param searchTerm search topic
+     * @param tags additional keywords to further filter the search
+     * @return list of found articles
+     * @throws RestClientException is something goes wrong during the web search
+     */
     private List<Article> performSearch(String searchTerm, List<String> tags) throws RestClientException {
         List<Article> articles = null;
 
@@ -102,6 +132,7 @@ public class NewsFeedService {
 
         ArticlesResult result = restTemplate.getForObject(builder.build().toUri(), ArticlesResult.class);
 
+        // Filter the article list, we don't want fields being null
         if (result != null) {
             articles = result.getArticles();
             articles.forEach(x -> x.setTags(tags));
@@ -113,20 +144,28 @@ public class NewsFeedService {
                                     && x.getTags() != null)
                     .collect(Collectors.toList());
         } else {
-            System.out.println("something went wrong when getting articles!");
+            throw new RestClientException("Articles could not be found!");
         }
 
         return articles;
     }
 
+    /**
+     * Given a user, finds articles that are relevant to them
+     * @param user
+     * @return relevant articles
+     */
     @Transactional
     public Set<Article> getArticles(User user) {
         Set<Article> articles = new HashSet<>();
         Map<String, String> tagPairs = new HashMap<>();
+
+        // The occupation type will be the main search term
         OccupationType occType = user.getOccupationType();
 
         int numTags = tags.size();
         int[] tagPair = {-1, -1};
+        int cacheThreshold = 100;
 
         // Randomise Tags
         for (int i = 0; i < 3; i++) {
@@ -138,12 +177,14 @@ public class NewsFeedService {
         }
 
         try {
+            // search on occupation + only one tag
             for (String tag : tags) {
                 String searchTerm = occType.getName() + " " + tag;
                 List<String> tags = Collections.singletonList(tag);
                 articles.addAll(performSearch(searchTerm, tags));
             }
 
+            // search on occupation + 2 tags
             for (Map.Entry<String, String> pair : tagPairs.entrySet()) {
                 List<String> tags = new ArrayList<>();
                 tags.add(pair.getKey());
@@ -156,7 +197,8 @@ public class NewsFeedService {
             return getCachedArticles();
         }
 
-        if (getNumCachedArticles() < 100) {
+        // cache articles
+        if (getNumCachedArticles() < cacheThreshold) {
             saveArticles(articles);
         }
 
