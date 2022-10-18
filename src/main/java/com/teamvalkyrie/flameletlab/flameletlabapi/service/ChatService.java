@@ -172,6 +172,9 @@ public class ChatService {
                  .findAnonymousUserByUserIdAndGroupId(userService.getCurrentLoggedInUser().getId(), groupChatId);
          groupChatOptional.ifPresent(g -> {
             if (anonUser != null) {
+                List<GroupChatMessage> userMessages = groupChatMessageRepository.
+                        findAllByAnonymousUserId(anonUser.getId());
+                groupChatMessageRepository.deleteAll(userMessages);
                 anonymousGroupChatUserRepository.delete(anonUser);
                 g.setTotalUsers(g.getTotalUsers() - 1);
                 this.groupChatRepository.save(g);
